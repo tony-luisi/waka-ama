@@ -44,6 +44,12 @@ export interface DifficultyAssessment {
   };
 }
 
+export interface PaddleDirectionAssessment {
+  outgoing: DifficultyAssessment;
+  incoming: DifficultyAssessment;
+  recommended: 'outgoing' | 'incoming' | 'both' | 'neither';
+}
+
 export interface LocationData {
   name: string;
   coordinates: {

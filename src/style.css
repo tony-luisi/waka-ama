@@ -34,7 +34,7 @@ header p {
   opacity: 0.9;
 }
 
-.conditions-card, .map-card, .forecast-card, .tides-card {
+.conditions-card, .map-card, .forecast-card, .tides-card, .paddle-directions-card {
   background: white;
   border-radius: 20px;
   padding: 30px;
@@ -42,7 +42,7 @@ header p {
   margin-bottom: 30px;
 }
 
-.map-card h2, .forecast-card h2, .tides-card h2 {
+.map-card h2, .forecast-card h2, .tides-card h2, .paddle-directions-card h2 {
   margin-bottom: 20px;
   color: #1e293b;
   font-size: 1.5rem;
@@ -381,7 +381,7 @@ header p {
     font-size: 2rem;
   }
   
-  .conditions-card, .map-card, .forecast-card, .tides-card {
+  .conditions-card, .map-card, .forecast-card, .tides-card, .paddle-directions-card {
     padding: 20px;
   }
   
@@ -441,4 +441,102 @@ header p {
     gap: 2px;
     align-items: flex-start;
   }
+  
+  .directions-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .direction-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Paddle Directions Styles */
+.recommended-direction {
+  text-align: center;
+  padding: 20px;
+  border-radius: 15px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 25px;
+}
+
+.recommended-direction.outgoing {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 2px solid #3b82f6;
+}
+
+.recommended-direction.incoming {
+  background: #fef3c7;
+  color: #92400e;
+  border: 2px solid #f59e0b;
+}
+
+.recommended-direction.both {
+  background: #dcfce7;
+  color: #166534;
+  border: 2px solid #22c55e;
+}
+
+.recommended-direction.neither {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 2px solid #ef4444;
+}
+
+.directions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.direction-assessment {
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+  background: #f8fafc;
+}
+
+.direction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.direction-label {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1.1rem;
+}
+
+.direction-score {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: white;
+}
+
+.direction-score.easy {
+  background: #22c55e;
+}
+
+.direction-score.moderate {
+  background: #f59e0b;
+}
+
+.direction-score.difficult {
+  background: #ef4444;
+}
+
+.direction-recommendation {
+  line-height: 1.5;
+  color: #475569;
+  margin: 0;
+  font-size: 0.95rem;
 }

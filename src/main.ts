@@ -1,14 +1,15 @@
 import { getCurrentConditions, getExtendedForecast } from './data';
-import { assessPaddlingDifficulty } from './difficulty';
+import { assessPaddlingDifficulty, assessPaddleDirections } from './difficulty';
 import { WindMap } from './map';
 import { updateForecastDisplay } from './forecast';
 import { TideService } from './api/tide-service';
-import { DailyTides } from './types';
+import { DailyTides, PaddleDirectionAssessment } from './types';
 
 async function updateUI() {
   try {
     const conditions = await getCurrentConditions();
     const assessment = assessPaddlingDifficulty(conditions);
+    const directionAssessment = assessPaddleDirections(conditions);
   
   const difficultyLevel = document.getElementById('difficultyLevel');
   const difficultyScore = document.getElementById('difficultyScore');
@@ -27,6 +28,9 @@ async function updateUI() {
   if (difficultyScore) {
     difficultyScore.textContent = `${assessment.score}/10`;
   }
+  
+  // Update paddle direction assessments
+  updatePaddleDirectionDisplay(directionAssessment);
   
   if (tideStatus) {
     const directionEmoji = conditions.tide.direction === 'incoming' ? '⬆️' : 
@@ -102,6 +106,44 @@ function updateTideTimesDisplay(dailyTides: DailyTides): void {
     
     tidesContainer.appendChild(tideElement);
   });
+}
+
+function updatePaddleDirectionDisplay(directionAssessment: PaddleDirectionAssessment): void {
+  const outgoingContainer = document.getElementById('outgoingAssessment');
+  const incomingContainer = document.getElementById('incomingAssessment');
+  const recommendedDirection = document.getElementById('recommendedDirection');
+  
+  if (outgoingContainer) {
+    outgoingContainer.innerHTML = `
+      <div class="direction-header">
+        <span class="direction-label">🚣‍♂️ Outgoing (to Bucklands Beach)</span>
+        <span class="direction-score ${directionAssessment.outgoing.level}">${directionAssessment.outgoing.score}/10</span>
+      </div>
+      <p class="direction-recommendation">${directionAssessment.outgoing.recommendation}</p>
+    `;
+  }
+  
+  if (incomingContainer) {
+    incomingContainer.innerHTML = `
+      <div class="direction-header">
+        <span class="direction-label">🏠 Incoming (back to Ian Shaw Park)</span>
+        <span class="direction-score ${directionAssessment.incoming.level}">${directionAssessment.incoming.score}/10</span>
+      </div>
+      <p class="direction-recommendation">${directionAssessment.incoming.recommendation}</p>
+    `;
+  }
+  
+  if (recommendedDirection) {
+    const recommendedText = {
+      'outgoing': '🚣‍♂️ Outgoing paddle is more favorable',
+      'incoming': '🏠 Incoming paddle is more favorable',
+      'both': '✅ Both directions are good',
+      'neither': '⚠️ Consider avoiding paddling right now'
+    };
+    
+    recommendedDirection.textContent = recommendedText[directionAssessment.recommended];
+    recommendedDirection.className = `recommended-direction ${directionAssessment.recommended}`;
+  }
 }
 
 let windMap: WindMap;

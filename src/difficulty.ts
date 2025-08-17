@@ -1,7 +1,7 @@
-import { PaddlingConditions, DifficultyAssessment, WeatherConditions, TideData } from './types';
+import { PaddlingConditions, DifficultyAssessment, PaddleDirectionAssessment, WeatherConditions, TideData } from './types';
 import { ianShawPark } from './data';
 
-function calculateWindScore(weather: WeatherConditions): number {
+function calculateWindScore(weather: WeatherConditions, paddleDirection: 'outgoing' | 'incoming'): number {
   const { windSpeed, windDirection, gustSpeed } = weather;
   
   let score = 0;
@@ -13,16 +13,31 @@ function calculateWindScore(weather: WeatherConditions): number {
   if (gustSpeed - windSpeed <= 5) score += 2;
   else if (gustSpeed - windSpeed <= 15) score += 1;
   
-  if (ianShawPark.idealWindDirections.includes(windDirection)) {
-    score += 2;
-  } else if (['N', 'S'].includes(windDirection)) {
-    score += 1;
+  // Wind direction scoring based on paddle direction
+  // Outgoing: NE winds (towards Bucklands Beach) are ideal
+  // Incoming: SW winds (towards Ian Shaw Park) are ideal
+  if (paddleDirection === 'outgoing') {
+    if (['NE', 'ENE', 'E'].includes(windDirection)) {
+      score += 2; // Tailwind for outgoing
+    } else if (['SW', 'WSW', 'W'].includes(windDirection)) {
+      score -= 1; // Headwind for outgoing
+    } else if (['N', 'S', 'SE', 'NW'].includes(windDirection)) {
+      score += 1; // Cross wind
+    }
+  } else { // incoming
+    if (['SW', 'WSW', 'W'].includes(windDirection)) {
+      score += 2; // Tailwind for incoming
+    } else if (['NE', 'ENE', 'E'].includes(windDirection)) {
+      score -= 1; // Headwind for incoming
+    } else if (['N', 'S', 'SE', 'NW'].includes(windDirection)) {
+      score += 1; // Cross wind
+    }
   }
   
   return Math.max(1, Math.min(5, score));
 }
 
-function calculateTideScore(tide: TideData): number {
+function calculateTideScore(tide: TideData, paddleDirection: 'outgoing' | 'incoming'): number {
   const { height, type, direction } = tide;
   
   let score = 0;
@@ -36,13 +51,23 @@ function calculateTideScore(tide: TideData): number {
   // Bonus for high tide (easier entry/exit)
   if (type === 'high') score += 0.5;
   
-  // Key factor: Tide direction for return journey
-  if (direction === 'incoming') {
-    score += 2; // Incoming tide helps paddle back to shore
-  } else if (direction === 'slack') {
-    score += 1; // Neutral tide conditions
-  } else if (direction === 'outgoing') {
-    score += 0; // Outgoing tide makes return more difficult
+  // Tide direction scoring based on paddle direction
+  if (paddleDirection === 'outgoing') {
+    if (direction === 'outgoing') {
+      score += 2; // Outgoing tide helps paddle out to Bucklands Beach
+    } else if (direction === 'slack') {
+      score += 1; // Neutral conditions
+    } else if (direction === 'incoming') {
+      score += 0; // Incoming tide works against outgoing paddle
+    }
+  } else { // incoming
+    if (direction === 'incoming') {
+      score += 2; // Incoming tide helps paddle back to Ian Shaw Park
+    } else if (direction === 'slack') {
+      score += 1; // Neutral conditions
+    } else if (direction === 'outgoing') {
+      score += 0; // Outgoing tide works against incoming paddle
+    }
   }
   
   return Math.max(1, Math.min(5, score));
@@ -66,65 +91,64 @@ function calculateTemperatureScore(temperature: number): number {
   return 1;
 }
 
-function generateRecommendation(conditions: PaddlingConditions, assessment: DifficultyAssessment): string {
+function generateRecommendation(conditions: PaddlingConditions, assessment: DifficultyAssessment, paddleDirection: 'outgoing' | 'incoming'): string {
   const { weather, tide } = conditions;
   const { level, factors } = assessment;
   
+  const directionText = paddleDirection === 'outgoing' ? 'towards Bucklands Beach' : 'back to Ian Shaw Park';
   const recommendations: string[] = [];
   
   if (level === 'easy') {
-    recommendations.push('Perfect conditions for paddling!');
+    recommendations.push(`Perfect conditions for paddling ${directionText}!`);
     
     if (factors.wind >= 4) {
-      recommendations.push(`Light ${weather.windDirection} winds are ideal.`);
+      const windHelp = paddleDirection === 'outgoing' ? 
+        (['NE', 'ENE', 'E'].includes(weather.windDirection) ? 'tailwind' : 'favorable wind') :
+        (['SW', 'WSW', 'W'].includes(weather.windDirection) ? 'tailwind' : 'favorable wind');
+      recommendations.push(`${weather.windDirection} winds provide a ${windHelp}.`);
     }
     if (factors.tide >= 4) {
-      if (tide.direction === 'incoming') {
-        recommendations.push(`${tide.type === 'high' ? 'High' : 'Low'} tide is incoming - perfect for easy return paddle.`);
+      const tideHelp = (paddleDirection === 'outgoing' && tide.direction === 'outgoing') ||
+                      (paddleDirection === 'incoming' && tide.direction === 'incoming');
+      if (tideHelp) {
+        recommendations.push(`${tide.direction} tide assists your paddle ${directionText}.`);
       } else {
-        recommendations.push(`${tide.type === 'high' ? 'High' : 'Low'} tide provides excellent water depth.`);
+        recommendations.push(`Good tide conditions with ${tide.height}m depth.`);
       }
-    }
-    if (factors.temperature >= 4) {
-      recommendations.push('Water temperature is comfortable.');
     }
   } else if (level === 'moderate') {
-    recommendations.push('Good conditions with some considerations.');
+    recommendations.push(`Moderate conditions for paddling ${directionText}.`);
     
     if (factors.wind < 3) {
-      recommendations.push(`${weather.windDirection} winds at ${weather.windSpeed}km/h may be challenging.`);
+      const windChallenge = paddleDirection === 'outgoing' ? 
+        (['SW', 'WSW', 'W'].includes(weather.windDirection) ? 'headwind' : 'challenging wind') :
+        (['NE', 'ENE', 'E'].includes(weather.windDirection) ? 'headwind' : 'challenging wind');
+      recommendations.push(`${weather.windDirection} winds create a ${windChallenge}.`);
     }
     if (factors.tide < 3) {
-      if (tide.direction === 'outgoing') {
-        recommendations.push('Outgoing tide will make the return paddle more challenging.');
-      } else {
-        recommendations.push('Consider tide timing for optimal depth.');
+      const tideChallenge = (paddleDirection === 'outgoing' && tide.direction === 'incoming') ||
+                           (paddleDirection === 'incoming' && tide.direction === 'outgoing');
+      if (tideChallenge) {
+        recommendations.push(`${tide.direction} tide works against your paddle ${directionText}.`);
       }
-    }
-    if (factors.temperature < 3) {
-      recommendations.push('Dress appropriately for the temperature.');
     }
   } else {
-    recommendations.push('Challenging conditions - consider postponing.');
+    recommendations.push(`Challenging conditions for paddling ${directionText} - consider avoiding.`);
     
     if (factors.wind < 2) {
-      recommendations.push(`Strong ${weather.windDirection} winds (${weather.windSpeed}km/h) with gusts to ${weather.gustSpeed}km/h.`);
+      recommendations.push(`Strong ${weather.windDirection} winds (${weather.windSpeed}km/h) with gusts to ${weather.gustSpeed}km/h make paddling difficult.`);
     }
     if (factors.tide < 2) {
-      if (tide.direction === 'outgoing') {
-        recommendations.push('Strong outgoing tide makes return very difficult - avoid paddling.');
-      } else {
-        recommendations.push('Poor tide conditions for paddling.');
-      }
+      recommendations.push(`Tide conditions are poor for paddling ${directionText}.`);
     }
   }
   
   return recommendations.join(' ');
 }
 
-export function assessPaddlingDifficulty(conditions: PaddlingConditions): DifficultyAssessment {
-  const windScore = calculateWindScore(conditions.weather);
-  const tideScore = calculateTideScore(conditions.tide);
+function createDifficultyAssessment(conditions: PaddlingConditions, paddleDirection: 'outgoing' | 'incoming'): DifficultyAssessment {
+  const windScore = calculateWindScore(conditions.weather, paddleDirection);
+  const tideScore = calculateTideScore(conditions.tide, paddleDirection);
   const timeScore = calculateTimeScore(conditions.timeOfDay);
   const tempScore = calculateTemperatureScore(conditions.weather.temperature);
   
@@ -150,7 +174,37 @@ export function assessPaddlingDifficulty(conditions: PaddlingConditions): Diffic
     factors
   };
   
-  assessment.recommendation = generateRecommendation(conditions, assessment);
+  assessment.recommendation = generateRecommendation(conditions, assessment, paddleDirection);
   
   return assessment;
+}
+
+export function assessPaddlingDifficulty(conditions: PaddlingConditions): DifficultyAssessment {
+  // Return the better of the two directions for backward compatibility
+  const directionAssessment = assessPaddleDirections(conditions);
+  return directionAssessment.outgoing.score >= directionAssessment.incoming.score ? 
+    directionAssessment.outgoing : directionAssessment.incoming;
+}
+
+export function assessPaddleDirections(conditions: PaddlingConditions): PaddleDirectionAssessment {
+  const outgoing = createDifficultyAssessment(conditions, 'outgoing');
+  const incoming = createDifficultyAssessment(conditions, 'incoming');
+  
+  let recommended: 'outgoing' | 'incoming' | 'both' | 'neither';
+  
+  if (outgoing.level === 'easy' && incoming.level === 'easy') {
+    recommended = 'both';
+  } else if (outgoing.level === 'difficult' && incoming.level === 'difficult') {
+    recommended = 'neither';
+  } else if (outgoing.score > incoming.score) {
+    recommended = 'outgoing';
+  } else {
+    recommended = 'incoming';
+  }
+  
+  return {
+    outgoing,
+    incoming,
+    recommended
+  };
 }
