@@ -1,4 +1,4 @@
-import { HourlyForecast, DailyForecast, ExtendedForecast, DailyTides, TideTime } from './types';
+import { HourlyForecast, DailyForecast, ExtendedForecast, DailyTides } from './types';
 
 function getTideTimeIndicator(forecast: HourlyForecast, dailyTides?: DailyTides): string {
   if (!dailyTides) return '';

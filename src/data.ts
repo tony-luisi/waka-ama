@@ -45,18 +45,21 @@ export const sampleTideData: TideData[] = [
   {
     height: 1.8,
     type: 'high',
+    direction: 'slack',
     nextChange: new Date('2024-08-17T22:15:00'),
     timestamp: new Date('2024-08-17T17:30:00')
   },
   {
     height: 0.4,
     type: 'low',
+    direction: 'outgoing',
     nextChange: new Date('2024-08-17T23:45:00'),
     timestamp: new Date('2024-08-17T17:30:00')
   },
   {
     height: 1.2,
     type: 'high',
+    direction: 'incoming',
     nextChange: new Date('2024-08-17T21:00:00'),
     timestamp: new Date('2024-08-17T17:30:00')
   }
@@ -95,17 +98,6 @@ function generateRandomWeather(baseTime: Date, hour: number): WeatherConditions 
   return weather;
 }
 
-function generateTideForHour(baseTime: Date, hour: number): TideData {
-  const tidePattern = Math.sin((hour + 3) * Math.PI / 6);
-  const height = 1.0 + tidePattern * 0.8 + (Math.random() - 0.5) * 0.3;
-  
-  return {
-    height: Math.round(height * 10) / 10,
-    type: height > 1.2 ? 'high' : 'low',
-    nextChange: new Date(baseTime.getTime() + (hour + 3) * 60 * 60 * 1000),
-    timestamp: new Date(baseTime.getTime() + hour * 60 * 60 * 1000)
-  };
-}
 
 function interpolateTideAtTime(targetTime: Date, tideTimes: TideTime[]): TideData {
   if (tideTimes.length === 0) {

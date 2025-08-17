@@ -176,7 +176,6 @@ export class TideService {
     }
 
     const current = values[currentIndex].value;
-    const next = values[currentIndex + 1].value;
     const nextNext = values[currentIndex + 2].value;
 
     // Calculate the trend over the next 20 minutes (2 data points at 10min intervals)

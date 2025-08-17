@@ -3,7 +3,7 @@ import { assessPaddlingDifficulty } from './difficulty';
 import { WindMap } from './map';
 import { updateForecastDisplay } from './forecast';
 import { TideService } from './api/tide-service';
-import { DailyTides, TideTime } from './types';
+import { DailyTides } from './types';
 
 async function updateUI() {
   try {
