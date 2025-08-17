@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waka Ama Paddling Conditions</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.0/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🛶 Waka Ama Conditions</h1>
+      <p>Ian Shaw Park • Weekdays 4-7pm</p>
+    </header>
+    
+    <main>
+      <div class="conditions-card">
+        <div class="difficulty-indicator">
+          <div class="difficulty-level" id="difficultyLevel">EASY</div>
+          <div class="difficulty-score" id="difficultyScore">2/10</div>
+        </div>
+        
+        <div class="conditions-grid">
+          <div class="condition-item">
+            <span class="label">🌊 Tide</span>
+            <span class="value" id="tideStatus">High (1.8m) Incoming</span>
+          </div>
+          <div class="condition-item">
+            <span class="label">💨 Wind</span>
+            <span class="value" id="windStatus">5 km/h NE</span>
+          </div>
+          <div class="condition-item">
+            <span class="label">🌪️ Gusts</span>
+            <span class="value" id="gustStatus">8 km/h</span>
+          </div>
+          <div class="condition-item">
+            <span class="label">🌡️ Temperature</span>
+            <span class="value" id="tempStatus">22°C</span>
+          </div>
+          <div class="condition-item">
+            <span class="label">⏰ Time</span>
+            <span class="value" id="timeStatus">5:30 PM</span>
+          </div>
+        </div>
+        
+        <div class="recommendation">
+          <h3>Now - Recommendation</h3>
+          <p id="recommendation">Perfect conditions! Light offshore winds and high tide make for ideal paddling. Water temperature is comfortable.</p>
+        </div>
+      </div>
+      
+      <div class="tides-card">
+        <h2>🌊 Today's Tide Times</h2>
+        <div id="tidesContainer" class="tides-container">
+          <div class="tide-time">
+            <span class="tide-type high">High</span>
+            <span class="tide-time-value">6:24 AM</span>
+            <span class="tide-height">1.8m</span>
+          </div>
+          <div class="tide-time">
+            <span class="tide-type low">Low</span>
+            <span class="tide-time-value">12:47 PM</span>
+            <span class="tide-height">0.3m</span>
+          </div>
+          <div class="tide-time">
+            <span class="tide-type high">High</span>
+            <span class="tide-time-value">7:15 PM</span>
+            <span class="tide-height">1.9m</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="map-card">
+        <h2>🗺️ Location & Wind Map</h2>
+        <div id="map" class="map-container"></div>
+      </div>
+      
+      <div class="forecast-card">
+        <h2>📊 Extended Forecast</h2>
+        <div id="forecastContainer" class="forecast-container"></div>
+      </div>
+    </main>
+  </div>
+  
+  <script type="module" src="main.ts"></script>
+</body>
+</html>
