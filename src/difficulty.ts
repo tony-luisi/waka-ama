@@ -185,6 +185,46 @@ export function assessPaddlingDifficulty(conditions: PaddlingConditions): Diffic
     directionAssessment.outgoing : directionAssessment.incoming;
 }
 
+function generateDirectionReasoning(conditions: PaddlingConditions, outgoing: DifficultyAssessment, incoming: DifficultyAssessment, recommended: string): string {
+  const { weather, tide } = conditions;
+  const reasons: string[] = [];
+  
+  // Wind analysis
+  const windDirection = weather.windDirection;
+  const windSpeed = weather.windSpeed;
+  
+  if (['NE', 'ENE', 'E'].includes(windDirection)) {
+    reasons.push(`${windDirection} winds (${windSpeed}km/h) favor outgoing paddle to Bucklands Beach`);
+  } else if (['SW', 'WSW', 'W'].includes(windDirection)) {
+    reasons.push(`${windDirection} winds (${windSpeed}km/h) favor incoming paddle to Ian Shaw Park`);
+  } else {
+    reasons.push(`${windDirection} winds (${windSpeed}km/h) create crosswind conditions`);
+  }
+  
+  // Tide analysis
+  if (tide.direction === 'outgoing') {
+    reasons.push(`Outgoing tide (${tide.height}m) assists paddle toward Bucklands Beach`);
+  } else if (tide.direction === 'incoming') {
+    reasons.push(`Incoming tide (${tide.height}m) assists return to Ian Shaw Park`);
+  } else {
+    reasons.push(`Slack tide (${tide.height}m) provides neutral conditions`);
+  }
+  
+  // Recommendation explanation
+  let conclusion = '';
+  if (recommended === 'both') {
+    conclusion = `Both directions score well (Out: ${outgoing.score}/10, In: ${incoming.score}/10) - excellent conditions for round trip`;
+  } else if (recommended === 'outgoing') {
+    conclusion = `Outgoing performs better (${outgoing.score}/10 vs ${incoming.score}/10) - ideal for paddling out`;
+  } else if (recommended === 'incoming') {
+    conclusion = `Incoming performs better (${incoming.score}/10 vs ${outgoing.score}/10) - better for returning`;
+  } else {
+    conclusion = `Both directions challenging (Out: ${outgoing.score}/10, In: ${incoming.score}/10) - consider postponing`;
+  }
+  
+  return `${reasons.join('. ')}. ${conclusion}.`;
+}
+
 export function assessPaddleDirections(conditions: PaddlingConditions): PaddleDirectionAssessment {
   const outgoing = createDifficultyAssessment(conditions, 'outgoing');
   const incoming = createDifficultyAssessment(conditions, 'incoming');
@@ -201,9 +241,12 @@ export function assessPaddleDirections(conditions: PaddlingConditions): PaddleDi
     recommended = 'incoming';
   }
   
+  const reasoning = generateDirectionReasoning(conditions, outgoing, incoming, recommended);
+  
   return {
     outgoing,
     incoming,
-    recommended
+    recommended,
+    reasoning
   };
 }

@@ -99,7 +99,7 @@ header p {
 
 .hourly-header {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr;
+  grid-template-columns: 1fr 1.5fr 1.5fr 1fr 1fr;
   gap: 10px;
   padding: 10px 15px;
   background: #f1f5f9;
@@ -115,13 +115,30 @@ header p {
 }
 
 .hourly-item {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr;
-  gap: 10px;
-  padding: 12px 15px;
   background: #fafafa;
   border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.hourly-main {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1.5fr 1fr 1fr;
+  gap: 10px;
+  padding: 12px 15px;
   align-items: center;
+}
+
+.hourly-details {
+  padding: 0 15px 15px 15px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.paddle-direction-explanation {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #475569;
+  padding: 10px 0;
 }
 
 .hour-time {
@@ -195,6 +212,65 @@ header p {
 
 .tide-direction.slack {
   color: #6b7280;
+}
+
+.hour-paddle-direction {
+  text-align: center;
+}
+
+.paddle-direction {
+  font-size: 1.2rem;
+  cursor: help;
+}
+
+.paddle-direction.both {
+  color: #10b981;
+}
+
+.paddle-direction.outgoing {
+  color: #3b82f6;
+}
+
+.paddle-direction.incoming {
+  color: #8b5cf6;
+}
+
+.paddle-direction.neither {
+  color: #ef4444;
+}
+
+.paddle-direction-btn {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+.paddle-direction-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.paddle-direction-btn.both {
+  color: #10b981;
+}
+
+.paddle-direction-btn.outgoing {
+  color: #3b82f6;
+}
+
+.paddle-direction-btn.incoming {
+  color: #8b5cf6;
+}
+
+.paddle-direction-btn.neither {
+  color: #ef4444;
 }
 
 .tide-summary {
@@ -394,9 +470,14 @@ header p {
     height: 300px;
   }
   
-  .hourly-header, .hourly-item {
-    grid-template-columns: 1fr 0.8fr 1fr 0.8fr 0.8fr;
+  .hourly-header, .hourly-main {
+    grid-template-columns: 1fr 1.2fr 1fr 0.8fr 0.8fr;
     font-size: 0.9rem;
+  }
+  
+  .paddle-direction-btn {
+    font-size: 0.75rem;
+    padding: 4px 6px;
   }
   
   .daily-summary {
@@ -486,6 +567,19 @@ header p {
   background: #fee2e2;
   color: #dc2626;
   border: 2px solid #ef4444;
+}
+
+.recommended-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.direction-reasoning {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+  opacity: 0.9;
 }
 
 .directions-grid {

@@ -1,6 +1,6 @@
 import { getCurrentConditions, getExtendedForecast } from './data';
 import { assessPaddlingDifficulty, assessPaddleDirections } from './difficulty';
-import { WindMap } from './map';
+// import { WindMap } from './map'; // Map temporarily removed
 import { updateForecastDisplay } from './forecast';
 import { TideService } from './api/tide-service';
 import { DailyTides, PaddleDirectionAssessment } from './types';
@@ -141,25 +141,30 @@ function updatePaddleDirectionDisplay(directionAssessment: PaddleDirectionAssess
       'neither': '⚠️ Consider avoiding paddling right now'
     };
     
-    recommendedDirection.textContent = recommendedText[directionAssessment.recommended];
+    recommendedDirection.innerHTML = `
+      <div class="recommended-text">${recommendedText[directionAssessment.recommended]}</div>
+      <div class="direction-reasoning">${directionAssessment.reasoning}</div>
+    `;
     recommendedDirection.className = `recommended-direction ${directionAssessment.recommended}`;
   }
 }
 
-let windMap: WindMap;
+// let windMap: WindMap; // Map temporarily removed
 const tideService = new TideService();
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const conditions = await updateUI();
+  // const conditions = await updateUI(); // Map temporarily removed
+  await updateUI();
   
-  try {
-    windMap = new WindMap('map');
-    if (conditions) {
-      windMap.updateWind(conditions.weather);
-    }
-  } catch (error) {
-    console.error('Failed to initialize map:', error);
-  }
+  // Map temporarily removed
+  // try {
+  //   windMap = new WindMap('map');
+  //   if (conditions) {
+  //     windMap.updateWind(conditions.weather);
+  //   }
+  // } catch (error) {
+  //   console.error('Failed to initialize map:', error);
+  // }
   
   try {
     const forecast = await getExtendedForecast();
@@ -181,9 +186,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   
   setInterval(async () => {
-    const conditions = await updateUI();
-    if (windMap && conditions) {
-      windMap.updateWind(conditions.weather);
-    }
+    await updateUI();
+    // Map temporarily removed
+    // const conditions = await updateUI();
+    // if (windMap && conditions) {
+    //   windMap.updateWind(conditions.weather);
+    // }
   }, 60000);
 });
+
+// Global function for toggling hourly details
+(window as any).toggleHourlyDetails = function(itemId: string) {
+  const detailsElement = document.getElementById(`${itemId}-details`);
+  if (detailsElement) {
+    const isVisible = detailsElement.style.display !== 'none';
+    detailsElement.style.display = isVisible ? 'none' : 'block';
+  }
+};

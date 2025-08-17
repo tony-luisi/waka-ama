@@ -48,6 +48,7 @@ export interface PaddleDirectionAssessment {
   outgoing: DifficultyAssessment;
   incoming: DifficultyAssessment;
   recommended: 'outgoing' | 'incoming' | 'both' | 'neither';
+  reasoning: string;
 }
 
 export interface LocationData {
@@ -65,6 +66,7 @@ export interface HourlyForecast {
   weather: WeatherConditions;
   tide: TideData;
   difficulty: DifficultyAssessment;
+  paddleDirections: PaddleDirectionAssessment;
 }
 
 export interface DailyForecast {

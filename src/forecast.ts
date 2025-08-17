@@ -1,4 +1,4 @@
-import { HourlyForecast, DailyForecast, ExtendedForecast, DailyTides } from './types';
+import { HourlyForecast, DailyForecast, ExtendedForecast, DailyTides, PaddleDirectionAssessment } from './types';
 
 function getTideTimeIndicator(forecast: HourlyForecast, dailyTides?: DailyTides): string {
   if (!dailyTides) return '';
@@ -30,25 +30,35 @@ export function createHourlyForecastElement(forecast: HourlyForecast, dailyTides
   
   const tideTimeIndicator = getTideTimeIndicator(forecast, dailyTides);
   
+  // Generate unique ID for this hourly item
+  const itemId = `hourly-${forecast.time.getTime()}`;
+  
   element.innerHTML = `
-    <div class="hour-time">
-      ${time}
-      ${tideTimeIndicator}
+    <div class="hourly-main">
+      <div class="hour-time">
+        ${time}
+        ${tideTimeIndicator}
+      </div>
+      <div class="hour-paddle-direction">
+        ${getPaddleDirectionIndicatorClickable(forecast.paddleDirections, itemId)}
+      </div>
+      <div class="hour-wind">
+        <span class="wind-arrow" style="transform: rotate(${getWindRotation(forecast.weather.windDirection)}deg)">↑</span>
+        ${forecast.weather.windSpeed}km/h
+      </div>
+      <div class="hour-tide">
+        ${forecast.tide.height}m
+        <span class="tide-direction ${forecast.tide.direction}">
+          ${forecast.tide.direction === 'incoming' ? '⬆️' : forecast.tide.direction === 'outgoing' ? '⬇️' : '➡️'}
+        </span>
+      </div>
+      <div class="hour-temp">${forecast.weather.temperature}°C</div>
     </div>
-    <div class="hour-difficulty ${forecast.difficulty.level}">
-      ${forecast.difficulty.score}/10
+    <div class="hourly-details" id="${itemId}-details" style="display: none;">
+      <div class="paddle-direction-explanation">
+        ${forecast.paddleDirections.reasoning}
+      </div>
     </div>
-    <div class="hour-wind">
-      <span class="wind-arrow" style="transform: rotate(${getWindRotation(forecast.weather.windDirection)}deg)">↑</span>
-      ${forecast.weather.windSpeed}km/h
-    </div>
-    <div class="hour-tide">
-      ${forecast.tide.height}m
-      <span class="tide-direction ${forecast.tide.direction}">
-        ${forecast.tide.direction === 'incoming' ? '⬆️' : forecast.tide.direction === 'outgoing' ? '⬇️' : '➡️'}
-      </span>
-    </div>
-    <div class="hour-temp">${forecast.weather.temperature}°C</div>
   `;
   
   return element;
@@ -62,6 +72,40 @@ function getWindRotation(direction: string): number {
     'W': 270, 'WNW': 292.5, 'NW': 315, 'NNW': 337.5
   };
   return directions[direction as keyof typeof directions] || 0;
+}
+
+
+function getPaddleDirectionIndicatorClickable(paddleDirections: PaddleDirectionAssessment, itemId: string): string {
+  const { recommended, outgoing, incoming } = paddleDirections;
+  
+  let text = '';
+  let className = '';
+  
+  if (recommended === 'both') {
+    text = 'Both ✓';
+    className = 'both';
+  } else if (recommended === 'outgoing') {
+    text = 'Outgoing ✓';
+    className = 'outgoing';
+  } else if (recommended === 'incoming') {
+    text = 'Incoming ✓';
+    className = 'incoming';
+  } else if (recommended === 'neither') {
+    text = 'Avoid ✗';
+    className = 'neither';
+  } else {
+    // Fallback - show better of the two
+    const betterDirection = outgoing.score >= incoming.score ? 'outgoing' : 'incoming';
+    if (betterDirection === 'outgoing') {
+      text = 'Outgoing ✓';
+      className = 'outgoing';
+    } else {
+      text = 'Incoming ✓';
+      className = 'incoming';
+    }
+  }
+  
+  return `<button class="paddle-direction-btn ${className}" onclick="toggleHourlyDetails('${itemId}')" aria-label="Show paddle direction details">${text}</button>`;
 }
 
 export function createDailyForecastElement(forecast: DailyForecast, title: string, dailyTides?: DailyTides): HTMLElement {
@@ -123,7 +167,7 @@ export function createDailyForecastElement(forecast: DailyForecast, title: strin
     <div class="hourly-forecast">
       <div class="hourly-header">
         <div>Time</div>
-        <div>Difficulty</div>
+        <div>Paddling Direction</div>
         <div>Wind</div>
         <div>Tide</div>
         <div>Temp</div>
