@@ -1,5 +1,4 @@
 import { PaddlingConditions, DifficultyAssessment, PaddleDirectionAssessment, WeatherConditions, TideData } from './types';
-import { ianShawPark } from './data';
 
 function calculateWindScore(weather: WeatherConditions, paddleDirection: 'outgoing' | 'incoming'): number {
   const { windSpeed, windDirection, gustSpeed } = weather;
