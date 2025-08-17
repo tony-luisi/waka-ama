@@ -278,6 +278,14 @@ header p {
   color: #ef4444;
 }
 
+.btn-short-text {
+  display: none;
+}
+
+.btn-full-text {
+  display: inline;
+}
+
 .tide-summary {
   margin: 15px 0;
   padding: 15px;
@@ -476,13 +484,36 @@ header p {
   }
   
   .hourly-header, .hourly-main {
-    grid-template-columns: 1fr 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr;
-    font-size: 0.9rem;
+    grid-template-columns: 0.8fr 1.1fr 0.7fr 0.7fr 0.7fr 0.7fr;
+    font-size: 0.8rem;
+    gap: 6px;
+    padding: 8px 10px;
   }
   
   .paddle-direction-btn {
+    font-size: 0.65rem;
+    padding: 2px 4px;
+    line-height: 1.2;
+  }
+  
+  .hour-wind, .hour-gusts, .hour-tide, .hour-temp {
     font-size: 0.75rem;
-    padding: 4px 6px;
+  }
+  
+  .wind-arrow {
+    font-size: 0.8rem;
+  }
+  
+  .tide-direction {
+    font-size: 0.7rem;
+  }
+  
+  .btn-full-text {
+    display: none;
+  }
+  
+  .btn-short-text {
+    display: inline;
   }
   
   .daily-summary {

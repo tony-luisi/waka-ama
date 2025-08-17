@@ -82,33 +82,43 @@ function getPaddleDirectionIndicatorClickable(paddleDirections: PaddleDirectionA
   const { recommended, outgoing, incoming } = paddleDirections;
   
   let text = '';
+  let shortText = '';
   let className = '';
   
   if (recommended === 'both') {
     text = 'Both ✓';
+    shortText = 'Both ✓';
     className = 'both';
   } else if (recommended === 'outgoing') {
     text = 'Outgoing ✓';
+    shortText = 'Out ✓';
     className = 'outgoing';
   } else if (recommended === 'incoming') {
     text = 'Incoming ✓';
+    shortText = 'In ✓';
     className = 'incoming';
   } else if (recommended === 'neither') {
     text = 'Avoid ✗';
+    shortText = 'No ✗';
     className = 'neither';
   } else {
     // Fallback - show better of the two
     const betterDirection = outgoing.score >= incoming.score ? 'outgoing' : 'incoming';
     if (betterDirection === 'outgoing') {
       text = 'Outgoing ✓';
+      shortText = 'Out ✓';
       className = 'outgoing';
     } else {
       text = 'Incoming ✓';
+      shortText = 'In ✓';
       className = 'incoming';
     }
   }
   
-  return `<button class="paddle-direction-btn ${className}" onclick="toggleHourlyDetails('${itemId}')" aria-label="Show paddle direction details">${text}</button>`;
+  return `<button class="paddle-direction-btn ${className}" onclick="toggleHourlyDetails('${itemId}')" aria-label="Show paddle direction details">
+    <span class="btn-full-text">${text}</span>
+    <span class="btn-short-text">${shortText}</span>
+  </button>`;
 }
 
 export function createDailyForecastElement(forecast: DailyForecast, title: string, dailyTides?: DailyTides): HTMLElement {
