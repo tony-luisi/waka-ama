@@ -99,7 +99,7 @@ header p {
 
 .hourly-header {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1.5fr 1fr 1fr;
+  grid-template-columns: 1fr 1.5fr 1.2fr 1fr 1fr 1fr;
   gap: 10px;
   padding: 10px 15px;
   background: #f1f5f9;
@@ -122,7 +122,7 @@ header p {
 
 .hourly-main {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1.5fr 1fr 1fr;
+  grid-template-columns: 1fr 1.5fr 1.2fr 1fr 1fr 1fr;
   gap: 10px;
   padding: 12px 15px;
   align-items: center;
@@ -187,9 +187,14 @@ header p {
   color: #667eea;
 }
 
-.hour-tide, .hour-temp {
+.hour-tide, .hour-temp, .hour-gusts {
   color: #64748b;
   font-weight: 500;
+}
+
+.hour-gusts {
+  color: #dc2626;
+  font-weight: 600;
 }
 
 .hour-tide {
@@ -471,7 +476,7 @@ header p {
   }
   
   .hourly-header, .hourly-main {
-    grid-template-columns: 1fr 1.2fr 1fr 0.8fr 0.8fr;
+    grid-template-columns: 1fr 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr;
     font-size: 0.9rem;
   }
   

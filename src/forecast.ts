@@ -46,6 +46,9 @@ export function createHourlyForecastElement(forecast: HourlyForecast, dailyTides
         <span class="wind-arrow" style="transform: rotate(${getWindRotation(forecast.weather.windDirection)}deg)">↑</span>
         ${forecast.weather.windSpeed}km/h
       </div>
+      <div class="hour-gusts">
+        ${forecast.weather.gustSpeed}km/h
+      </div>
       <div class="hour-tide">
         ${forecast.tide.height}m
         <span class="tide-direction ${forecast.tide.direction}">
@@ -169,6 +172,7 @@ export function createDailyForecastElement(forecast: DailyForecast, title: strin
         <div>Time</div>
         <div>Paddling Direction</div>
         <div>Wind</div>
+        <div>Gusts</div>
         <div>Tide</div>
         <div>Temp</div>
       </div>
