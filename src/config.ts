@@ -15,14 +15,14 @@ export const API_CONFIG = {
     // In production, use our API proxy; in development, use direct API calls
     apiUrl: isProduction ? '/api/niwa-tides' : 'https://forecast-v2.metservice.com/niwa/tide',
     // Only use API key in development - production uses environment variables on server
-    apiKey: isProduction ? undefined : 'yWcExmYHoto0wFcQC6hIwSZtSv0oSeGy'
+    apiKey: isProduction ? undefined : import.meta.env.VITE_NIWA_API_KEY || 'yWcExmYHoto0wFcQC6hIwSZtSv0oSeGy'
   },
   fallback: {
     openWeatherMap: {
       // In production, use our API proxy; in development, use direct API calls
       baseUrl: isProduction ? '/api/weather' : 'https://api.openweathermap.org/data/2.5',
       // Only use API key in development - production uses environment variables on server
-      apiKey: isProduction ? undefined : 'e897cab153a2616dff2c7e0563c8e50e'
+      apiKey: isProduction ? undefined : import.meta.env.VITE_OPENWEATHER_API_KEY || 'e897cab153a2616dff2c7e0563c8e50e'
     }
   },
   locations: {
