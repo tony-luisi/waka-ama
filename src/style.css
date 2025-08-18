@@ -1,3 +1,18 @@
+:root {
+  /* Polynesian/Marine color palette */
+  --ocean-deep: #0a2540;    /* Deep ocean blue */
+  --ocean-blue: #1e3a5f;    /* Dark blue */
+  --ocean-medium: #2c5282;  /* Medium blue */
+  --ocean-light: #3182ce;   /* Lighter blue */
+  --sun-gold: #fbbf24;      /* Polynesian sun yellow */
+  --sun-bright: #fcd34d;    /* Bright yellow */
+  --sun-light: #fde68a;     /* Light yellow */
+  --sand: #fef3c7;          /* Beach sand */
+  --coral: #fb923c;         /* Coral orange accent */
+  --seafoam: #e0f2fe;       /* Light seafoam */
+  --pearl: #f8fafc;         /* Pearl white */
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -6,46 +21,103 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--ocean-deep) 0%, var(--ocean-blue) 50%, var(--ocean-medium) 100%);
   min-height: 100vh;
-  color: #333;
+  color: var(--ocean-deep);
+  position: relative;
+}
+
+/* Polynesian wave pattern overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(45deg, 
+      transparent, 
+      transparent 10px, 
+      rgba(251, 191, 36, 0.03) 10px, 
+      rgba(251, 191, 36, 0.03) 20px),
+    repeating-linear-gradient(-45deg, 
+      transparent, 
+      transparent 10px, 
+      rgba(251, 191, 36, 0.03) 10px, 
+      rgba(251, 191, 36, 0.03) 20px);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  position: relative;
+  z-index: 2;
 }
 
 header {
   text-align: center;
-  color: white;
+  color: var(--sun-gold);
   margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+/* Polynesian sun rays behind header */
+header::before {
+  content: '☀';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 4rem;
+  opacity: 0.2;
+  color: var(--sun-gold);
 }
 
 header h1 {
   font-size: 2.5rem;
   margin-bottom: 8px;
   font-weight: 700;
+  letter-spacing: 1px;
 }
 
 header p {
   font-size: 1.1rem;
-  opacity: 0.9;
+  color: var(--sun-light);
+  opacity: 0.95;
 }
 
 .conditions-card, .map-card, .forecast-card, .tides-card, .paddle-directions-card {
-  background: white;
+  background: linear-gradient(135deg, var(--pearl) 0%, var(--seafoam) 100%);
   border-radius: 20px;
   padding: 30px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(10, 37, 64, 0.15);
   margin-bottom: 30px;
+  border: 2px solid var(--ocean-light);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Polynesian wave border pattern for cards */
+.conditions-card::before, .map-card::before, .forecast-card::before, .tides-card::before, .paddle-directions-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--sun-gold) 0%, var(--coral) 50%, var(--sun-gold) 100%);
 }
 
 .map-card h2, .forecast-card h2, .tides-card h2, .paddle-directions-card h2 {
   margin-bottom: 20px;
-  color: #1e293b;
+  color: var(--ocean-deep);
   font-size: 1.5rem;
+  font-weight: 700;
 }
 
 .map-container {
@@ -60,15 +132,17 @@ header p {
 }
 
 .daily-forecast {
-  border: 1px solid #e2e8f0;
+  border: 2px solid var(--ocean-light);
   border-radius: 15px;
   padding: 20px;
+  background: linear-gradient(135deg, var(--pearl) 0%, rgba(224, 242, 254, 0.3) 100%);
 }
 
 .daily-forecast h3 {
   margin-bottom: 15px;
-  color: #1e293b;
+  color: var(--ocean-deep);
   font-size: 1.3rem;
+  font-weight: 700;
 }
 
 .daily-summary {
@@ -82,18 +156,20 @@ header p {
   display: flex;
   justify-content: space-between;
   padding: 10px 15px;
-  background: #f8fafc;
+  background: linear-gradient(135deg, var(--seafoam) 0%, var(--pearl) 100%);
   border-radius: 8px;
+  border: 1px solid var(--ocean-light);
 }
 
 .daily-conditions {
-  color: #64748b;
+  color: var(--ocean-medium);
   font-style: italic;
   margin-bottom: 20px;
+  font-weight: 500;
 }
 
 .hourly-forecast {
-  border-top: 1px solid #e2e8f0;
+  border-top: 2px solid var(--ocean-light);
   padding-top: 20px;
 }
 
@@ -102,10 +178,10 @@ header p {
   grid-template-columns: 1fr 1.5fr 1.2fr 1fr 1fr 1fr;
   gap: 10px;
   padding: 10px 15px;
-  background: #f1f5f9;
+  background: linear-gradient(135deg, var(--ocean-medium) 0%, var(--ocean-light) 100%);
   border-radius: 8px;
   font-weight: 600;
-  color: #475569;
+  color: var(--pearl);
   margin-bottom: 10px;
 }
 
@@ -115,9 +191,10 @@ header p {
 }
 
 .hourly-item {
-  background: #fafafa;
+  background: linear-gradient(135deg, var(--pearl) 0%, var(--seafoam) 100%);
   border-radius: 8px;
   margin-bottom: 8px;
+  border: 1px solid rgba(49, 130, 206, 0.2);
 }
 
 .hourly-main {
@@ -130,25 +207,26 @@ header p {
 
 .hourly-details {
   padding: 0 15px 15px 15px;
-  border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border-top: 1px solid var(--ocean-light);
+  background: linear-gradient(135deg, var(--seafoam) 0%, rgba(248, 250, 252, 0.8) 100%);
 }
 
 .paddle-direction-explanation {
   font-size: 0.9rem;
   line-height: 1.4;
-  color: #475569;
+  color: var(--ocean-medium);
   padding: 10px 0;
+  font-weight: 500;
 }
 
 .hour-time {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--ocean-deep);
 }
 
 .tide-time-indicator {
   font-size: 0.7rem;
-  color: #0ea5e9;
+  color: var(--ocean-light);
   font-weight: 700;
   margin-top: 2px;
   text-transform: uppercase;
@@ -165,15 +243,15 @@ header p {
 }
 
 .hour-difficulty.easy {
-  background: #4ade80;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
 }
 
 .hour-difficulty.moderate {
-  background: #fbbf24;
+  background: linear-gradient(135deg, var(--sun-gold) 0%, var(--coral) 100%);
 }
 
 .hour-difficulty.difficult {
-  background: #f87171;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
 .hour-wind {
@@ -184,16 +262,16 @@ header p {
 
 .wind-arrow {
   font-size: 1.2rem;
-  color: #667eea;
+  color: var(--ocean-light);
 }
 
 .hour-tide, .hour-temp, .hour-gusts {
-  color: #64748b;
+  color: var(--ocean-medium);
   font-weight: 500;
 }
 
 .hour-gusts {
-  color: #dc2626;
+  color: var(--coral);
   font-weight: 600;
 }
 
@@ -263,19 +341,23 @@ header p {
 }
 
 .paddle-direction-btn.both {
-  color: #10b981;
+  color: #22c55e;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
 }
 
 .paddle-direction-btn.outgoing {
-  color: #3b82f6;
+  color: var(--ocean-light);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(49, 130, 206, 0.1) 100%);
 }
 
 .paddle-direction-btn.incoming {
-  color: #8b5cf6;
+  color: var(--coral);
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
 }
 
 .paddle-direction-btn.neither {
   color: #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
 }
 
 .btn-short-text {
@@ -289,20 +371,22 @@ header p {
 .tide-summary {
   margin: 15px 0;
   padding: 15px;
-  background: #f0f9ff;
+  background: linear-gradient(135deg, var(--seafoam) 0%, var(--pearl) 100%);
   border-radius: 10px;
-  border-left: 4px solid #0ea5e9;
+  border-left: 4px solid var(--ocean-light);
+  border: 1px solid rgba(49, 130, 206, 0.3);
 }
 
 .tide-summary h4 {
   margin: 0 0 8px 0;
-  color: #0c4a6e;
+  color: var(--ocean-deep);
   font-size: 1rem;
+  font-weight: 700;
 }
 
 .tide-times {
   margin: 0;
-  color: #075985;
+  color: var(--ocean-medium);
   font-weight: 500;
   line-height: 1.4;
 }
@@ -314,12 +398,12 @@ header p {
 
 .wind-popup h4 {
   margin-bottom: 8px;
-  color: #1e293b;
+  color: var(--ocean-deep);
 }
 
 .wind-popup p {
   margin: 4px 0;
-  color: #64748b;
+  color: var(--ocean-medium);
 }
 
 .tides-container {
@@ -333,9 +417,10 @@ header p {
   gap: 15px;
   align-items: center;
   padding: 15px 20px;
-  background: #f8fafc;
+  background: linear-gradient(135deg, var(--seafoam) 0%, var(--pearl) 100%);
   border-radius: 12px;
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--ocean-light);
+  border: 1px solid rgba(49, 130, 206, 0.2);
 }
 
 .tide-type {
@@ -350,32 +435,34 @@ header p {
 }
 
 .tide-type.high {
-  background: #3b82f6;
+  background: linear-gradient(135deg, var(--ocean-light) 0%, var(--ocean-medium) 100%);
 }
 
 .tide-type.low {
-  background: #64748b;
+  background: linear-gradient(135deg, var(--ocean-medium) 0%, var(--ocean-deep) 100%);
 }
 
 .tide-time-value {
   font-weight: 700;
   font-size: 1.1rem;
-  color: #1e293b;
+  color: var(--ocean-deep);
 }
 
 .tide-height {
   font-weight: 600;
-  color: #475569;
+  color: var(--ocean-medium);
   font-size: 1rem;
 }
 
 .tide-time.current {
-  border-left-color: #10b981;
-  background: #ecfdf5;
+  border-left-color: var(--sun-gold);
+  background: linear-gradient(135deg, var(--sun-light) 0%, var(--sand) 100%);
+  border: 2px solid var(--sun-gold);
 }
 
 .tide-time.current .tide-time-value {
-  color: #047857;
+  color: var(--ocean-deep);
+  font-weight: 800;
 }
 
 .difficulty-indicator {
@@ -395,23 +482,26 @@ header p {
 }
 
 .difficulty-level.easy {
-  background: #4ade80;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   color: white;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
 }
 
 .difficulty-level.moderate {
-  background: #fbbf24;
-  color: white;
+  background: linear-gradient(135deg, var(--sun-gold) 0%, var(--coral) 100%);
+  color: var(--ocean-deep);
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
 }
 
 .difficulty-level.difficult {
-  background: #f87171;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .difficulty-score {
   font-size: 1.2rem;
-  color: #666;
+  color: var(--ocean-medium);
   font-weight: 600;
 }
 
@@ -426,39 +516,44 @@ header p {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  background: #f8fafc;
+  background: linear-gradient(135deg, var(--seafoam) 0%, var(--pearl) 100%);
   border-radius: 12px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--sun-gold);
+  border: 1px solid rgba(49, 130, 206, 0.2);
 }
 
 .label {
   font-weight: 600;
   font-size: 1rem;
+  color: var(--ocean-medium);
 }
 
 .value {
   font-weight: 700;
-  color: #1e293b;
+  color: var(--ocean-deep);
   font-size: 1rem;
 }
 
 .recommendation {
-  background: #f1f5f9;
+  background: linear-gradient(135deg, var(--sand) 0%, var(--sun-light) 100%);
   padding: 25px;
   border-radius: 15px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--coral);
+  border: 2px solid var(--sun-gold);
 }
 
 .recommendation h3 {
   margin-bottom: 12px;
-  color: #1e293b;
+  color: var(--ocean-deep);
   font-size: 1.3rem;
+  font-weight: 700;
 }
 
 .recommendation p {
   line-height: 1.6;
-  color: #475569;
+  color: var(--ocean-medium);
   font-size: 1rem;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {
@@ -582,26 +677,26 @@ header p {
 }
 
 .recommended-direction.outgoing {
-  background: #dbeafe;
-  color: #1e40af;
-  border: 2px solid #3b82f6;
+  background: linear-gradient(135deg, var(--seafoam) 0%, rgba(59, 130, 246, 0.1) 100%);
+  color: var(--ocean-deep);
+  border: 2px solid var(--ocean-light);
 }
 
 .recommended-direction.incoming {
-  background: #fef3c7;
-  color: #92400e;
-  border: 2px solid #f59e0b;
+  background: linear-gradient(135deg, var(--sand) 0%, rgba(251, 146, 60, 0.1) 100%);
+  color: var(--ocean-deep);
+  border: 2px solid var(--coral);
 }
 
 .recommended-direction.both {
-  background: #dcfce7;
-  color: #166534;
+  background: linear-gradient(135deg, var(--sun-light) 0%, rgba(34, 197, 94, 0.1) 100%);
+  color: var(--ocean-deep);
   border: 2px solid #22c55e;
 }
 
 .recommended-direction.neither {
-  background: #fee2e2;
-  color: #dc2626;
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.8) 0%, rgba(239, 68, 68, 0.1) 100%);
+  color: var(--ocean-deep);
   border: 2px solid #ef4444;
 }
 
@@ -626,9 +721,9 @@ header p {
 
 .direction-assessment {
   padding: 20px;
-  border: 1px solid #e2e8f0;
+  border: 2px solid var(--ocean-light);
   border-radius: 15px;
-  background: #f8fafc;
+  background: linear-gradient(135deg, var(--pearl) 0%, var(--seafoam) 100%);
 }
 
 .direction-header {
@@ -640,7 +735,7 @@ header p {
 
 .direction-label {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--ocean-deep);
   font-size: 1.1rem;
 }
 
@@ -653,20 +748,21 @@ header p {
 }
 
 .direction-score.easy {
-  background: #22c55e;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
 }
 
 .direction-score.moderate {
-  background: #f59e0b;
+  background: linear-gradient(135deg, var(--sun-gold) 0%, var(--coral) 100%);
 }
 
 .direction-score.difficult {
-  background: #ef4444;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
 .direction-recommendation {
   line-height: 1.5;
-  color: #475569;
+  color: var(--ocean-medium);
   margin: 0;
   font-size: 0.95rem;
+  font-weight: 500;
 }

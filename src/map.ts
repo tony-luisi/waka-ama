@@ -176,9 +176,9 @@ export class WindMap {
   private getWindImpact(weather: WeatherConditions): string {
     const { windDirection } = weather;
     
-    if (['NE', 'ENE', 'E'].includes(windDirection)) {
+    if (['SW', 'WSW', 'W'].includes(windDirection)) {
       return `${windDirection} winds favor outgoing paddle to Bucklands Beach (tailwind)`;
-    } else if (['SW', 'WSW', 'W'].includes(windDirection)) {
+    } else if (['NE', 'ENE', 'E'].includes(windDirection)) {
       return `${windDirection} winds favor incoming paddle to Ian Shaw Park (tailwind)`;
     } else if (['N', 'S', 'SE', 'NW'].includes(windDirection)) {
       return `${windDirection} crosswinds - manageable conditions`;

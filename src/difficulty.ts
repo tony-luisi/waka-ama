@@ -13,21 +13,22 @@ function calculateWindScore(weather: WeatherConditions, paddleDirection: 'outgoi
   else if (gustSpeed - windSpeed <= 15) score += 1;
   
   // Wind direction scoring based on paddle direction
-  // Outgoing: NE winds (towards Bucklands Beach) are ideal
-  // Incoming: SW winds (towards Ian Shaw Park) are ideal
+  // Remember: Wind directions indicate where wind comes FROM
+  // Outgoing (NE to Bucklands): SW winds are ideal (tailwind)
+  // Incoming (SW to Ian Shaw): NE winds are ideal (tailwind)
   if (paddleDirection === 'outgoing') {
-    if (['NE', 'ENE', 'E'].includes(windDirection)) {
-      score += 2; // Tailwind for outgoing
-    } else if (['SW', 'WSW', 'W'].includes(windDirection)) {
-      score -= 1; // Headwind for outgoing
+    if (['SW', 'WSW', 'W'].includes(windDirection)) {
+      score += 2; // Tailwind for outgoing (wind from SW, paddling NE)
+    } else if (['NE', 'ENE', 'E'].includes(windDirection)) {
+      score -= 1; // Headwind for outgoing (wind from NE, paddling NE)
     } else if (['N', 'S', 'SE', 'NW'].includes(windDirection)) {
       score += 1; // Cross wind
     }
   } else { // incoming
-    if (['SW', 'WSW', 'W'].includes(windDirection)) {
-      score += 2; // Tailwind for incoming
-    } else if (['NE', 'ENE', 'E'].includes(windDirection)) {
-      score -= 1; // Headwind for incoming
+    if (['NE', 'ENE', 'E'].includes(windDirection)) {
+      score += 2; // Tailwind for incoming (wind from NE, paddling SW)
+    } else if (['SW', 'WSW', 'W'].includes(windDirection)) {
+      score -= 1; // Headwind for incoming (wind from SW, paddling SW)
     } else if (['N', 'S', 'SE', 'NW'].includes(windDirection)) {
       score += 1; // Cross wind
     }
@@ -102,8 +103,8 @@ function generateRecommendation(conditions: PaddlingConditions, assessment: Diff
     
     if (factors.wind >= 4) {
       const windHelp = paddleDirection === 'outgoing' ? 
-        (['NE', 'ENE', 'E'].includes(weather.windDirection) ? 'tailwind' : 'favorable wind') :
-        (['SW', 'WSW', 'W'].includes(weather.windDirection) ? 'tailwind' : 'favorable wind');
+        (['SW', 'WSW', 'W'].includes(weather.windDirection) ? 'tailwind' : 'favorable wind') :
+        (['NE', 'ENE', 'E'].includes(weather.windDirection) ? 'tailwind' : 'favorable wind');
       recommendations.push(`${weather.windDirection} winds provide a ${windHelp}.`);
     }
     if (factors.tide >= 4) {
@@ -120,8 +121,8 @@ function generateRecommendation(conditions: PaddlingConditions, assessment: Diff
     
     if (factors.wind < 3) {
       const windChallenge = paddleDirection === 'outgoing' ? 
-        (['SW', 'WSW', 'W'].includes(weather.windDirection) ? 'headwind' : 'challenging wind') :
-        (['NE', 'ENE', 'E'].includes(weather.windDirection) ? 'headwind' : 'challenging wind');
+        (['NE', 'ENE', 'E'].includes(weather.windDirection) ? 'headwind' : 'challenging wind') :
+        (['SW', 'WSW', 'W'].includes(weather.windDirection) ? 'headwind' : 'challenging wind');
       recommendations.push(`${weather.windDirection} winds create a ${windChallenge}.`);
     }
     if (factors.tide < 3) {
@@ -193,9 +194,9 @@ function generateDirectionReasoning(conditions: PaddlingConditions, outgoing: Di
   const windDirection = weather.windDirection;
   const windSpeed = weather.windSpeed;
   
-  if (['NE', 'ENE', 'E'].includes(windDirection)) {
+  if (['SW', 'WSW', 'W'].includes(windDirection)) {
     reasons.push(`${windDirection} winds (${windSpeed}km/h) favor outgoing paddle to Bucklands Beach`);
-  } else if (['SW', 'WSW', 'W'].includes(windDirection)) {
+  } else if (['NE', 'ENE', 'E'].includes(windDirection)) {
     reasons.push(`${windDirection} winds (${windSpeed}km/h) favor incoming paddle to Ian Shaw Park`);
   } else {
     reasons.push(`${windDirection} winds (${windSpeed}km/h) create crosswind conditions`);
