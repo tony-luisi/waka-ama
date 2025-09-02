@@ -74,7 +74,7 @@ export default async function handler(req, res) {
       datum: datum || 'MSL'
     });
 
-    const url = `https://forecast-v2.metservice.com/niwa/tide/data?${params}`;
+    const url = `https://api.niwa.co.nz/tides/data?${params}`;
     console.log('Final NIWA API URL:', url);
     console.log('Request headers to be sent:', {
       'x-apikey': apiKey ? apiKey.substring(0, 8) + '...' : 'none',
