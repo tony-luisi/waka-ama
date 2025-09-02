@@ -16,12 +16,19 @@ export default async function handler(req, res) {
 
   try {
     console.log('NIWA API proxy called with query:', req.query);
+    console.log('Query parameter types:', {
+      lat: typeof req.query.lat,
+      lng: typeof req.query.lng,
+      long: typeof req.query.long,
+      startDate: typeof req.query.startDate
+    });
     
-    const { lat, lng, startDate, numberOfDays, interval, datum } = req.query;
+    const { lat, long, startDate, numberOfDays, interval, datum } = req.query;
+    console.log('Extracted parameters:', { lat, long, startDate, numberOfDays, interval, datum });
 
-    if (!lat || !lng || !startDate) {
-      console.error('Missing required parameters:', { lat, lng, startDate });
-      res.status(400).json({ error: 'Missing required parameters: lat, lng, startDate' });
+    if (!lat || !long || !startDate) {
+      console.error('Missing required parameters:', { lat, long, startDate });
+      res.status(400).json({ error: 'Missing required parameters: lat, long, startDate' });
       return;
     }
 
@@ -35,7 +42,7 @@ export default async function handler(req, res) {
 
     const params = new URLSearchParams({
       lat: lat.toString(),
-      long: lng.toString(),
+      long: long.toString(),
       startDate,
       numberOfDays: numberOfDays || '1',
       ...(interval && { interval }),
