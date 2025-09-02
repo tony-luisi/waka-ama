@@ -56,7 +56,7 @@ export class TideService {
     
     const params = new URLSearchParams({
       lat: lat.toString(),
-      long: lng.toString(),
+      lng: lng.toString(),
       startDate: now.toISOString().split('T')[0],
       numberOfDays: '1',
       interval: '10',
@@ -125,7 +125,7 @@ export class TideService {
     
     const params = new URLSearchParams({
       lat: lat.toString(),
-      long: lng.toString(),
+      lng: lng.toString(),
       startDate: now.toISOString().split('T')[0],
       numberOfDays: numberOfDays.toString(),
       interval: '60',
@@ -291,7 +291,7 @@ export class TideService {
     // Get tide data without interval to get high/low times only
     const params = new URLSearchParams({
       lat: lat.toString(),
-      long: lng.toString(),
+      lng: lng.toString(),
       startDate: date.toISOString().split('T')[0],
       numberOfDays: '1',
       datum: 'MSL'
