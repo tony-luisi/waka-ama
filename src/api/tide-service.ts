@@ -44,7 +44,8 @@ export class TideService {
   private async getNIWATideData(): Promise<TideData> {
     const apiKey = API_CONFIG.niwa.apiKey;
     
-    if (!apiKey) {
+    // In production, we use the API proxy which handles the key server-side
+    if (!apiKey && API_CONFIG.niwa.apiUrl.includes('localhost')) {
       throw new Error('NIWA API key not configured');
     }
 
@@ -111,7 +112,8 @@ export class TideService {
   private async getNIWATideForecast(hours: number): Promise<TideData[]> {
     const apiKey = API_CONFIG.niwa.apiKey;
     
-    if (!apiKey) {
+    // In production, we use the API proxy which handles the key server-side
+    if (!apiKey && API_CONFIG.niwa.apiUrl.includes('localhost')) {
       throw new Error('NIWA API key not configured');
     }
 
@@ -269,7 +271,8 @@ export class TideService {
   private async getNIWADailyTides(date: Date): Promise<DailyTides> {
     const apiKey = API_CONFIG.niwa.apiKey;
     
-    if (!apiKey) {
+    // In production, we use the API proxy which handles the key server-side
+    if (!apiKey && API_CONFIG.niwa.apiUrl.includes('localhost')) {
       throw new Error('NIWA API key not configured');
     }
 
