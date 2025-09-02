@@ -37,7 +37,9 @@ export class TideService {
       return await this.getNIWADailyTides(date);
     } catch (error) {
       console.warn('Failed to fetch daily tide times, using fallback:', error);
-      return this.getFallbackDailyTides(date);
+      const fallbackTides = this.getFallbackDailyTides(date);
+      fallbackTides.isFallback = true;
+      return fallbackTides;
     }
   }
 
@@ -269,10 +271,18 @@ export class TideService {
   }
 
   private async getNIWADailyTides(date: Date): Promise<DailyTides> {
+    console.log('[TIDE DEBUG] Starting getNIWADailyTides for date:', date.toDateString());
+    console.log('[TIDE DEBUG] API Config:', {
+      apiUrl: API_CONFIG.niwa.apiUrl,
+      hasApiKey: !!API_CONFIG.niwa.apiKey,
+      isProduction: !API_CONFIG.niwa.apiUrl.includes('localhost')
+    });
+    
     const apiKey = API_CONFIG.niwa.apiKey;
     
     // In production, we use the API proxy which handles the key server-side
     if (!apiKey && API_CONFIG.niwa.apiUrl.includes('localhost')) {
+      console.error('[TIDE DEBUG] No API key in development mode');
       throw new Error('NIWA API key not configured');
     }
 
@@ -289,6 +299,7 @@ export class TideService {
     });
 
     const url = `${API_CONFIG.niwa.apiUrl}?${params}`;
+    console.log('[TIDE DEBUG] Making request to:', url);
     
     const headers: Record<string, string> = {
       'Accept': 'application/json'
@@ -297,16 +308,29 @@ export class TideService {
     // Only add API key header in development
     if (apiKey) {
       headers['x-apikey'] = apiKey;
+      console.log('[TIDE DEBUG] Added API key header (development mode)');
+    } else {
+      console.log('[TIDE DEBUG] No API key header (using proxy in production)');
     }
     
     const response = await fetch(url, { headers });
 
+    console.log('[TIDE DEBUG] Response status:', response.status);
+    console.log('[TIDE DEBUG] Response headers:', Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
+      let errorBody = '';
+      try {
+        errorBody = await response.text();
+        console.error('[TIDE DEBUG] Error response body:', errorBody);
+      } catch (e) {
+        console.error('[TIDE DEBUG] Could not read error body:', e);
+      }
       throw new Error(`NIWA API error: ${response.status}`);
     }
 
     const data: NIWATideResponse = await response.json();
-    console.log('NIWA daily tides response:', {
+    console.log('[TIDE DEBUG] NIWA daily tides response:', {
       metadata: data.metadata,
       valueCount: data.values?.length,
       firstValue: data.values?.[0],

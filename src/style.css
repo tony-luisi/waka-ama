@@ -465,6 +465,31 @@ header p {
   font-weight: 800;
 }
 
+.tide-fallback-notice {
+  margin-bottom: 15px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  border-left: 4px solid var(--sun-gold);
+}
+
+.notice-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notice-icon {
+  font-size: 16px;
+}
+
+.notice-text {
+  font-size: 14px;
+  color: var(--ocean-deep);
+  font-weight: 500;
+}
+
 .difficulty-indicator {
   text-align: center;
   margin-bottom: 30px;

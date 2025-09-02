@@ -23,6 +23,7 @@ export interface TideTime {
 export interface DailyTides {
   date: Date;
   tides: TideTime[];
+  isFallback?: boolean;
 }
 
 export interface PaddlingConditions {

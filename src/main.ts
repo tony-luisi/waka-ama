@@ -78,6 +78,19 @@ function updateTideTimesDisplay(dailyTides: DailyTides): void {
   
   tidesContainer.innerHTML = '';
   
+  // Add fallback notification if needed
+  if (dailyTides.isFallback) {
+    const notification = document.createElement('div');
+    notification.className = 'tide-fallback-notice';
+    notification.innerHTML = `
+      <div class="notice-content">
+        <span class="notice-icon">⚠️</span>
+        <span class="notice-text">Using estimated tide times - live data unavailable</span>
+      </div>
+    `;
+    tidesContainer.appendChild(notification);
+  }
+  
   const now = new Date();
   
   dailyTides.tides.forEach(tide => {
