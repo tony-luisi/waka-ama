@@ -18,7 +18,6 @@ export default async function handler(req, res) {
     console.log('NIWA API proxy called with query:', req.query);
     console.log('Query parameter types:', {
       lat: typeof req.query.lat,
-      lng: typeof req.query.lng,
       long: typeof req.query.long,
       startDate: typeof req.query.startDate
     });
