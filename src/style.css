@@ -282,7 +282,9 @@ header p {
 }
 
 .tide-direction {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  font-weight: 600;
 }
 
 .tide-direction.incoming {

@@ -195,10 +195,14 @@ function interpolateTideAtTime(targetTime: Date, tideTimes: TideTime[]): TideDat
     dhMs = (H1 - H0) / (t1 - t0);
   }
 
-  const dhm = dhMs * 60 * 1000;
+  // Slack = near a turning point on this segment (sin(πτ)→0). Do not use a fixed m/min
+  // threshold: ebb/flood rates are ~0.002–0.01 m/min, so an absolute cutoff marked almost
+  // the whole cycle as "slack".
+  const sinPhase = Math.sin(Math.PI * clampedTau);
+  const nearTurningPoint = Math.abs(sinPhase) < 0.14;
 
   let direction: 'incoming' | 'outgoing' | 'slack';
-  if (Math.abs(dhm) < 0.035) {
+  if (nearTurningPoint) {
     direction = 'slack';
   } else if (dhMs > 0) {
     direction = 'incoming';

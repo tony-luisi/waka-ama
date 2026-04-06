@@ -1,5 +1,6 @@
 import { HourlyForecast, DailyForecast, ExtendedForecast, DailyTides, PaddleDirectionAssessment } from './types';
 import { arrowRotationFromWindFromLabel } from './wind-display';
+import { tideMovementLabel } from './tide-display';
 
 /** HIGH/LOW badge only on the same local clock-hour as the extremum (avoids "HIGH" at :00 when HW was :59). */
 function getTideTimeIndicator(forecast: HourlyForecast, dailyTides?: DailyTides): string {
@@ -34,7 +35,9 @@ export function createHourlyForecastElement(forecast: HourlyForecast, dailyTides
   });
   
   const tideTimeIndicator = getTideTimeIndicator(forecast, dailyTides);
-  
+
+  const tideMoveLabel = tideMovementLabel(forecast.tide, dailyTides?.tides);
+
   // Generate unique ID for this hourly item
   const itemId = `hourly-${forecast.time.getTime()}`;
   
@@ -56,9 +59,7 @@ export function createHourlyForecastElement(forecast: HourlyForecast, dailyTides
       </div>
       <div class="hour-tide">
         ${forecast.tide.height}m
-        <span class="tide-direction ${forecast.tide.direction}">
-          ${forecast.tide.direction === 'incoming' ? '⬆️' : forecast.tide.direction === 'outgoing' ? '⬇️' : '➡️'}
-        </span>
+        <span class="tide-direction ${forecast.tide.direction}" aria-label="${tideMoveLabel} tide">${tideMoveLabel}</span>
       </div>
       <div class="hour-temp">${forecast.weather.temperature}°C</div>
     </div>

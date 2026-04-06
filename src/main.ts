@@ -4,6 +4,7 @@ import { assessPaddlingDifficulty, assessPaddleDirections } from './difficulty';
 import { updateForecastDisplay } from './forecast';
 import { TideService } from './api/tide-service';
 import { DailyTides, PaddleDirectionAssessment } from './types';
+import { tideMovementLabel } from './tide-display';
 
 async function updateUI() {
   try {
@@ -33,11 +34,8 @@ async function updateUI() {
   updatePaddleDirectionDisplay(directionAssessment);
   
   if (tideStatus) {
-    const directionEmoji = conditions.tide.direction === 'incoming' ? '⬆️' : 
-                          conditions.tide.direction === 'outgoing' ? '⬇️' : '➡️';
-    const directionText = conditions.tide.direction === 'incoming' ? 'Rising' :
-                         conditions.tide.direction === 'outgoing' ? 'Falling' : 'Slack';
-    tideStatus.textContent = `${conditions.tide.type === 'high' ? 'High' : 'Low'} (${conditions.tide.height}m) ${directionEmoji} ${directionText}`;
+    const move = tideMovementLabel(conditions.tide);
+    tideStatus.textContent = `${conditions.tide.type === 'high' ? 'High' : 'Low'} (${conditions.tide.height}m) — ${move}`;
   }
   
   if (windStatus) {
