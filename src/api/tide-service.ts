@@ -1,5 +1,6 @@
 import { TideData, TideTime, DailyTides } from '../types';
 import { API_CONFIG } from '../config';
+import { formatLocalDateYMD } from '../local-date';
 
 export interface NIWATideResponse {
   metadata: {
@@ -56,7 +57,7 @@ export class TideService {
     const params = new URLSearchParams({
       lat: lat.toString(),
       long: lng.toString(),
-      startDate: now.toISOString().split('T')[0],
+      startDate: formatLocalDateYMD(now),
       numberOfDays: '1',
       interval: '10',
       datum: 'MSL'
@@ -144,7 +145,7 @@ export class TideService {
     const params = new URLSearchParams({
       lat: lat.toString(),
       long: lng.toString(),
-      startDate: now.toISOString().split('T')[0],
+      startDate: formatLocalDateYMD(now),
       numberOfDays: numberOfDays.toString(),
       interval: '60',
       datum: 'MSL'
@@ -301,7 +302,7 @@ export class TideService {
     const params = new URLSearchParams({
       lat: lat.toString(),
       long: lng.toString(),
-      startDate: date.toISOString().split('T')[0],
+      startDate: formatLocalDateYMD(date),
       numberOfDays: '1',
       datum: 'MSL'
       // No interval parameter = high/low tide times only
