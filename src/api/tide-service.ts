@@ -33,7 +33,6 @@ export class TideService {
 
   async getDailyTides(date: Date = new Date()): Promise<DailyTides> {
     try {
-      console.log('Attempting to get NIWA daily tides for', date.toDateString());
       return await this.getNIWADailyTides(date);
     } catch (error) {
       console.warn('Failed to fetch daily tide times, using fallback:', error);
@@ -86,12 +85,13 @@ export class TideService {
       throw new Error('No tide data available');
     }
 
-    const currentValue = data.values[0];
-    const nextValues = data.values.slice(1, 20);
+    const idx = this.findClosestTimeIndex(data.values, now);
+    const currentValue = data.values[idx];
+    const nextValues = data.values.slice(idx + 1, idx + 20);
     
     const isHigh = this.determineTideType(currentValue.value, nextValues);
-    const direction = this.determineTideDirection(data.values, 0);
-    const nextChange = this.findNextTideChange(data.values);
+    const direction = this.determineTideDirection(data.values, idx);
+    const nextChange = this.findNextTideChange(data.values, idx);
     
     return {
       height: Math.round(currentValue.value * 10) / 10,
@@ -100,6 +100,24 @@ export class TideService {
       nextChange: nextChange,
       timestamp: new Date(currentValue.time)
     };
+  }
+
+  /** Index of the sample whose time is nearest to `target` (NIWA series may start at midnight). */
+  private findClosestTimeIndex(
+    values: Array<{ time: string; value: number }>,
+    target: Date
+  ): number {
+    const t = target.getTime();
+    let best = 0;
+    let bestDiff = Infinity;
+    for (let i = 0; i < values.length; i++) {
+      const diff = Math.abs(new Date(values[i].time).getTime() - t);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = i;
+      }
+    }
+    return best;
   }
 
   async getTideForecast(hours: number = 24): Promise<TideData[]> {
@@ -160,7 +178,7 @@ export class TideService {
         height: Math.round(value.value * 10) / 10,
         type: isHigh ? 'high' : 'low',
         direction: direction,
-        nextChange: this.findNextTideChange(data.values.slice(index)),
+        nextChange: this.findNextTideChange(data.values, index),
         timestamp: new Date(value.time)
       };
     });
@@ -173,39 +191,38 @@ export class TideService {
     return currentHeight >= avgNext;
   }
 
-  private determineTideDirection(values: Array<{value: number}>, currentIndex: number): 'incoming' | 'outgoing' | 'slack' {
-    // Need at least a few data points to determine direction
-    if (values.length < 3 || currentIndex >= values.length - 2) {
+  private determineTideDirection(values: Array<{ value: number }>, currentIndex: number): 'incoming' | 'outgoing' | 'slack' {
+    if (values.length < 2 || currentIndex >= values.length - 1) {
       return 'slack';
     }
 
     const current = values[currentIndex].value;
-    const nextNext = values[currentIndex + 2].value;
-
-    // Calculate the trend over the next 20 minutes (2 data points at 10min intervals)
-    const heightChange = nextNext - current;
-    const changeThreshold = 0.05; // 5cm change threshold
+    const next = values[currentIndex + 1].value;
+    const heightChange = next - current;
+    const changeThreshold = 0.05; // 5cm over one sample (works for 10m or 60m spacing)
 
     if (heightChange > changeThreshold) {
-      return 'incoming'; // Tide is rising
-    } else if (heightChange < -changeThreshold) {
-      return 'outgoing'; // Tide is falling
-    } else {
-      return 'slack'; // Tide is relatively stable (slack water)
+      return 'incoming';
     }
+    if (heightChange < -changeThreshold) {
+      return 'outgoing';
+    }
+    return 'slack';
   }
 
-  private findNextTideChange(values: Array<{time: string, value: number}>): Date {
-    for (let i = 1; i < values.length - 1; i++) {
+  /** Next high or low (local extremum) at or after `fromIndex`. */
+  private findNextTideChange(values: Array<{ time: string; value: number }>, fromIndex: number = 0): Date {
+    const start = Math.max(1, fromIndex + 1);
+    for (let i = start; i < values.length - 1; i++) {
       const prev = values[i - 1].value;
       const current = values[i].value;
       const next = values[i + 1].value;
-      
+
       if ((prev < current && current > next) || (prev > current && current < next)) {
         return new Date(values[i].time);
       }
     }
-    
+
     return new Date(Date.now() + 6 * 60 * 60 * 1000);
   }
 
@@ -271,18 +288,10 @@ export class TideService {
   }
 
   private async getNIWADailyTides(date: Date): Promise<DailyTides> {
-    console.log('[TIDE DEBUG] Starting getNIWADailyTides for date:', date.toDateString());
-    console.log('[TIDE DEBUG] API Config:', {
-      apiUrl: API_CONFIG.niwa.apiUrl,
-      hasApiKey: !!API_CONFIG.niwa.apiKey,
-      isProduction: !API_CONFIG.niwa.apiUrl.includes('localhost')
-    });
-    
     const apiKey = API_CONFIG.niwa.apiKey;
     
     // In production, we use the API proxy which handles the key server-side
     if (!apiKey && API_CONFIG.niwa.apiUrl.includes('localhost')) {
-      console.error('[TIDE DEBUG] No API key in development mode');
       throw new Error('NIWA API key not configured');
     }
 
@@ -299,7 +308,6 @@ export class TideService {
     });
 
     const url = `${API_CONFIG.niwa.apiUrl}?${params}`;
-    console.log('[TIDE DEBUG] Making request to:', url);
     
     const headers: Record<string, string> = {
       'Accept': 'application/json'
@@ -308,34 +316,15 @@ export class TideService {
     // Only add API key header in development
     if (apiKey) {
       headers['x-apikey'] = apiKey;
-      console.log('[TIDE DEBUG] Added API key header (development mode)');
-    } else {
-      console.log('[TIDE DEBUG] No API key header (using proxy in production)');
     }
     
     const response = await fetch(url, { headers });
 
-    console.log('[TIDE DEBUG] Response status:', response.status);
-    console.log('[TIDE DEBUG] Response headers:', Object.fromEntries(response.headers.entries()));
-
     if (!response.ok) {
-      let errorBody = '';
-      try {
-        errorBody = await response.text();
-        console.error('[TIDE DEBUG] Error response body:', errorBody);
-      } catch (e) {
-        console.error('[TIDE DEBUG] Could not read error body:', e);
-      }
       throw new Error(`NIWA API error: ${response.status}`);
     }
 
     const data: NIWATideResponse = await response.json();
-    console.log('[TIDE DEBUG] NIWA daily tides response:', {
-      metadata: data.metadata,
-      valueCount: data.values?.length,
-      firstValue: data.values?.[0],
-      lastValue: data.values?.[data.values?.length - 1]
-    });
     
     const tides: TideTime[] = data.values.map(value => {
       const tide = {
@@ -343,7 +332,6 @@ export class TideService {
         height: Math.round(value.value * 10) / 10,
         type: this.isHighTide(value.value, data.values) ? 'high' as const : 'low' as const
       };
-      console.log(`NIWA tide: ${tide.time.toLocaleTimeString()} ${tide.height}m ${tide.type}`);
       return tide;
     });
 

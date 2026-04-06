@@ -1,6 +1,8 @@
 export interface WeatherConditions {
   windSpeed: number;
   windDirection: string;
+  /** Degrees wind comes FROM (OpenWeather / met convention); used for interpolation. */
+  windDeg?: number;
   gustSpeed: number;
   temperature: number;
   timestamp: Date;

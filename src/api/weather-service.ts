@@ -1,6 +1,13 @@
 import { WeatherConditions } from '../types';
 import { API_CONFIG } from '../config';
 
+/** 16-point compass from meteorological degrees (direction wind comes FROM). */
+export function windDegreesToCompass(degrees: number): string {
+  const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  const index = Math.round(((degrees % 360) + 360) % 360 / 22.5) % 16;
+  return directions[index];
+}
+
 export interface MetServiceObservation {
   station: string;
   time: string;
@@ -27,7 +34,34 @@ export interface OpenWeatherMapResponse {
 }
 
 export class WeatherService {
-  
+  /**
+   * Production uses `/api/weather` (query `type=forecast` for forecast). Dev calls OWM 2.5 `/weather` and `/forecast`.
+   */
+  private buildOpenWeatherUrl(
+    kind: 'current' | 'forecast',
+    lat: number,
+    lng: number,
+    apiKey: string | undefined
+  ): string {
+    const base = API_CONFIG.fallback.openWeatherMap.baseUrl;
+    const query = new URLSearchParams({
+      lat: String(lat),
+      lon: String(lng),
+      units: 'metric'
+    });
+    if (apiKey) {
+      query.set('appid', apiKey);
+    }
+    if (base.startsWith('/api')) {
+      if (kind === 'forecast') {
+        query.set('type', 'forecast');
+      }
+      return `${base}?${query}`;
+    }
+    const path = kind === 'forecast' ? 'forecast' : 'weather';
+    return `${base}/${path}?${query}`;
+  }
+
   async getCurrentWeather(): Promise<WeatherConditions> {
     try {
       return await this.getOpenWeatherMapData();
@@ -46,7 +80,7 @@ export class WeatherService {
       throw new Error('OpenWeatherMap API key not configured');
     }
 
-    const url = `${API_CONFIG.fallback.openWeatherMap.baseUrl}?lat=${lat}&lon=${lng}${apiKey ? `&appid=${apiKey}` : ''}&units=metric`;
+    const url = this.buildOpenWeatherUrl('current', lat, lng, apiKey);
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -55,10 +89,14 @@ export class WeatherService {
 
     const data: OpenWeatherMapResponse = await response.json();
     
+    const deg = data.wind?.deg ?? 0;
     return {
-      windSpeed: Math.round(data.wind.speed * 3.6),
-      windDirection: this.degreesToCompass(data.wind.deg),
-      gustSpeed: data.wind.gust ? Math.round(data.wind.gust * 3.6) : Math.round(data.wind.speed * 3.6 * 1.3),
+      windSpeed: Math.round((data.wind?.speed ?? 0) * 3.6),
+      windDirection: windDegreesToCompass(deg),
+      windDeg: deg,
+      gustSpeed: data.wind?.gust
+        ? Math.round(data.wind.gust * 3.6)
+        : Math.round((data.wind?.speed ?? 0) * 3.6 * 1.3),
       temperature: Math.round(data.main.temp),
       timestamp: new Date(data.dt * 1000)
     };
@@ -82,7 +120,7 @@ export class WeatherService {
       throw new Error('OpenWeatherMap API key not configured');
     }
 
-    const url = `${API_CONFIG.fallback.openWeatherMap.baseUrl}?lat=${lat}&lon=${lng}&type=forecast${apiKey ? `&appid=${apiKey}` : ''}&units=metric`;
+    const url = this.buildOpenWeatherUrl('forecast', lat, lng, apiKey);
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -91,19 +129,17 @@ export class WeatherService {
 
     const data = await response.json();
     
-    return data.list.slice(0, Math.ceil(hours / 3)).map((item: any) => ({
-      windSpeed: Math.round(item.wind.speed * 3.6),
-      windDirection: this.degreesToCompass(item.wind.deg),
-      gustSpeed: item.wind.gust ? Math.round(item.wind.gust * 3.6) : Math.round(item.wind.speed * 3.6 * 1.3),
-      temperature: Math.round(item.main.temp),
-      timestamp: new Date(item.dt * 1000)
-    }));
-  }
-
-  private degreesToCompass(degrees: number): string {
-    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-    const index = Math.round(degrees / 22.5) % 16;
-    return directions[index];
+    return data.list.slice(0, Math.ceil(hours / 3)).map((item: any) => {
+      const deg = item.wind?.deg ?? 0;
+      return {
+        windSpeed: Math.round(item.wind.speed * 3.6),
+        windDirection: windDegreesToCompass(deg),
+        windDeg: deg,
+        gustSpeed: item.wind.gust ? Math.round(item.wind.gust * 3.6) : Math.round(item.wind.speed * 3.6 * 1.3),
+        temperature: Math.round(item.main.temp),
+        timestamp: new Date(item.dt * 1000)
+      };
+    });
   }
 
   private getFallbackWeather(): WeatherConditions {

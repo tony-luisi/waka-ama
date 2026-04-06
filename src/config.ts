@@ -26,9 +26,10 @@ export const API_CONFIG = {
     }
   },
   locations: {
+    /** Ian Shaw Park launch, WGS84 (S36 53 49 / E174 52 22, Pacific/Auckland) */
     ianShawPark: {
-      lat: -36.8485,
-      lng: 174.7633,
+      lat: -36.896944,
+      lng: 174.872778,
       name: 'Ian Shaw Park',
       metserviceStation: 'Auckland',
       niwaLocation: 'Waitemata Harbour'

@@ -1,20 +1,25 @@
 import { HourlyForecast, DailyForecast, ExtendedForecast, DailyTides, PaddleDirectionAssessment } from './types';
+import { arrowRotationFromWindFromLabel } from './wind-display';
 
+/** HIGH/LOW badge only on the same local clock-hour as the extremum (avoids "HIGH" at :00 when HW was :59). */
 function getTideTimeIndicator(forecast: HourlyForecast, dailyTides?: DailyTides): string {
   if (!dailyTides) return '';
-  
-  // Check if this hour matches any tide time (within 30 minutes)
-  const currentTime = forecast.time.getTime();
+
+  const ft = forecast.time;
   const matchingTide = dailyTides.tides.find(tide => {
-    const tideTime = tide.time.getTime();
-    const timeDiff = Math.abs(currentTime - tideTime);
-    return timeDiff <= 30 * 60 * 1000; // Within 30 minutes
+    if (tide.time.getFullYear() !== ft.getFullYear() || tide.time.getMonth() !== ft.getMonth() || tide.time.getDate() !== ft.getDate()) {
+      return false;
+    }
+    if (tide.time.getHours() !== ft.getHours()) {
+      return false;
+    }
+    return Math.abs(forecast.time.getTime() - tide.time.getTime()) <= 55 * 60 * 1000;
   });
-  
+
   if (matchingTide) {
     return `<div class="tide-time-indicator">${matchingTide.type.toUpperCase()}</div>`;
   }
-  
+
   return '';
 }
 
@@ -43,7 +48,7 @@ export function createHourlyForecastElement(forecast: HourlyForecast, dailyTides
         ${getPaddleDirectionIndicatorClickable(forecast.paddleDirections, itemId)}
       </div>
       <div class="hour-wind">
-        <span class="wind-arrow" style="transform: rotate(${getWindRotation(forecast.weather.windDirection)}deg)">↑</span>
+        <span class="wind-arrow" style="transform: rotate(${arrowRotationFromWindFromLabel(forecast.weather.windDirection)}deg)">↑</span>
         ${forecast.weather.windSpeed}km/h
       </div>
       <div class="hour-gusts">
@@ -66,17 +71,6 @@ export function createHourlyForecastElement(forecast: HourlyForecast, dailyTides
   
   return element;
 }
-
-function getWindRotation(direction: string): number {
-  const directions = {
-    'N': 0, 'NNE': 22.5, 'NE': 45, 'ENE': 67.5,
-    'E': 90, 'ESE': 112.5, 'SE': 135, 'SSE': 157.5,
-    'S': 180, 'SSW': 202.5, 'SW': 225, 'WSW': 247.5,
-    'W': 270, 'WNW': 292.5, 'NW': 315, 'NNW': 337.5
-  };
-  return directions[direction as keyof typeof directions] || 0;
-}
-
 
 function getPaddleDirectionIndicatorClickable(paddleDirections: PaddleDirectionAssessment, itemId: string): string {
   const { recommended, outgoing, incoming } = paddleDirections;

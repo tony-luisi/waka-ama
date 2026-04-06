@@ -1,11 +1,11 @@
 import { WeatherConditions, TideData, PaddlingConditions, LocationData, ExtendedForecast, DailyForecast, HourlyForecast, TideTime } from './types';
 import { assessPaddlingDifficulty, assessPaddleDirections } from './difficulty';
-import { WeatherService } from './api/weather-service';
+import { WeatherService, windDegreesToCompass } from './api/weather-service';
 import { TideService } from './api/tide-service';
 
 export const ianShawPark: LocationData = {
   name: 'Ian Shaw Park',
-  coordinates: { lat: -36.8485, lng: 174.7633 },
+  coordinates: { lat: -36.896944, lng: 174.872778 },
   idealWindDirections: ['NE', 'E', 'SE'],
   sheltered: true
 };
@@ -86,9 +86,11 @@ function generateRandomWeather(baseTime: Date, hour: number): WeatherConditions 
   const tempVariation = (Math.sin(seed * 0.15) + Math.cos(seed * 0.45)) * 3; // Seeded variation
   const temperature = Math.round(baseTemp + tempVariation);
   
+  const windDeg = directionIndex * 22.5;
   const weather = {
     windSpeed: windSpeed,
     windDirection: windDirection,
+    windDeg,
     gustSpeed: Math.round(windSpeed + 3 + Math.abs(Math.sin(seed * 0.5)) * 6),
     temperature: temperature,
     timestamp: new Date(baseTime.getTime() + hour * 60 * 60 * 1000)
@@ -99,10 +101,17 @@ function generateRandomWeather(baseTime: Date, hour: number): WeatherConditions 
 }
 
 
+function compassToApproxDegrees(direction: string): number {
+  const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  const idx = directions.indexOf(direction);
+  return idx >= 0 ? idx * 22.5 : 0;
+}
+
+/**
+ * Half-cycle harmonic between consecutive NIWA highs/lows (linear is a poor fit for water level).
+ */
 function interpolateTideAtTime(targetTime: Date, tideTimes: TideTime[]): TideData {
   if (tideTimes.length === 0) {
-    console.warn('No tide times available for interpolation');
-    // Fallback if no tide data
     return {
       height: 1.0,
       type: 'high',
@@ -112,104 +121,177 @@ function interpolateTideAtTime(targetTime: Date, tideTimes: TideTime[]): TideDat
     };
   }
 
-  // Sort tide times by time
   const sortedTides = [...tideTimes].sort((a, b) => a.time.getTime() - b.time.getTime());
-  
-  console.log('Interpolating for', targetTime.toLocaleTimeString(), 'with tides:', 
-    sortedTides.map(t => `${t.time.toLocaleTimeString()} ${t.height}m ${t.type}`));
-  console.log('Target time epoch:', targetTime.getTime());
-  
-  // Find the two tide times that bracket our target time
-  let beforeTide: TideTime | null = null;
-  let afterTide: TideTime | null = null;
+  const t = targetTime.getTime();
+  const tFirst = sortedTides[0].time.getTime();
+  const tLast = sortedTides[sortedTides.length - 1].time.getTime();
 
-  for (let i = 0; i < sortedTides.length; i++) {
-    const tideTime = sortedTides[i].time.getTime();
-    console.log(`Checking tide ${i}: ${sortedTides[i].time.toLocaleTimeString()} (${tideTime}) vs target (${targetTime.getTime()})`);
-    
-    if (tideTime <= targetTime.getTime()) {
-      beforeTide = sortedTides[i];
-      console.log(`  -> Set as beforeTide: ${beforeTide.time.toLocaleTimeString()} ${beforeTide.height}m`);
-    }
-    if (tideTime > targetTime.getTime() && !afterTide) {
-      afterTide = sortedTides[i];
-      console.log(`  -> Set as afterTide: ${afterTide.time.toLocaleTimeString()} ${afterTide.height}m`);
+  if (t <= tFirst) {
+    const e0 = sortedTides[0];
+    return {
+      height: e0.height,
+      type: e0.type,
+      direction: 'slack',
+      nextChange: sortedTides.length > 1 ? sortedTides[1].time : new Date(t + 6 * 60 * 60 * 1000),
+      timestamp: targetTime
+    };
+  }
+  if (t >= tLast) {
+    const en = sortedTides[sortedTides.length - 1];
+    return {
+      height: en.height,
+      type: en.type,
+      direction: 'slack',
+      nextChange: new Date(t + 6 * 60 * 60 * 1000),
+      timestamp: targetTime
+    };
+  }
+
+  let beforeIdx = 0;
+  for (let i = 0; i < sortedTides.length - 1; i++) {
+    const a = sortedTides[i].time.getTime();
+    const b = sortedTides[i + 1].time.getTime();
+    if (a <= t && t <= b) {
+      beforeIdx = i;
       break;
     }
   }
-  
-  console.log(`Final bracketing: before=${beforeTide?.time.toLocaleTimeString()} ${beforeTide?.height}m, after=${afterTide?.time.toLocaleTimeString()} ${afterTide?.height}m`);
 
-  // If we don't have before/after, use closest available
-  if (!beforeTide && afterTide) {
-    beforeTide = afterTide;
-  }
-  if (!afterTide && beforeTide) {
-    afterTide = beforeTide;
-  }
+  const beforeTide = sortedTides[beforeIdx];
+  const afterTide = sortedTides[beforeIdx + 1];
 
-  // If we still don't have tides, use first available
-  if (!beforeTide || !afterTide) {
-    const tide = sortedTides[0];
-    console.warn('No proper tide bracketing found, using first tide:', tide);
-    return {
-      height: tide.height,
-      type: tide.type,
-      direction: 'slack',
-      nextChange: new Date(targetTime.getTime() + 6 * 60 * 60 * 1000),
-      timestamp: targetTime
-    };
-  }
-
-  // If beforeTide and afterTide are the same, we have an issue with the data
   if (beforeTide.time.getTime() === afterTide.time.getTime()) {
-    console.warn('beforeTide and afterTide are the same time - tide data issue!', beforeTide);
-    // Generate a synthetic tide based on time of day
-    const hour = targetTime.getHours();
-    const tidePattern = Math.sin((hour + 3) * Math.PI / 6);
-    const syntheticHeight = 1.0 + tidePattern * 0.8;
-    const direction = tidePattern > 0 ? 'incoming' : 'outgoing';
-    
     return {
-      height: Math.round(syntheticHeight * 10) / 10,
-      type: syntheticHeight > 1.2 ? 'high' : 'low',
-      direction: direction,
-      nextChange: new Date(targetTime.getTime() + 6 * 60 * 60 * 1000),
+      height: beforeTide.height,
+      type: beforeTide.type,
+      direction: 'slack',
+      nextChange: new Date(t + 6 * 60 * 60 * 1000),
       timestamp: targetTime
     };
   }
 
-  // Interpolate height between the two tide times
-  const timeDiff = afterTide.time.getTime() - beforeTide.time.getTime();
-  const targetDiff = targetTime.getTime() - beforeTide.time.getTime();
-  const ratio = timeDiff > 0 ? targetDiff / timeDiff : 0;
+  const t0 = beforeTide.time.getTime();
+  const t1 = afterTide.time.getTime();
+  const H0 = beforeTide.height;
+  const H1 = afterTide.height;
+  const tau = (t - t0) / (t1 - t0);
+  const clampedTau = Math.max(0, Math.min(1, tau));
 
-  const interpolatedHeight = beforeTide.height + (afterTide.height - beforeTide.height) * ratio;
+  let height: number;
+  let dhMs: number;
 
-  // Determine direction based on whether tide is rising or falling
+  if (beforeTide.type === 'high' && afterTide.type === 'low') {
+    const mid = (H0 + H1) / 2;
+    const amp = (H0 - H1) / 2;
+    height = mid + amp * Math.cos(Math.PI * clampedTau);
+    dhMs = -amp * (Math.PI / (t1 - t0)) * Math.sin(Math.PI * clampedTau);
+  } else if (beforeTide.type === 'low' && afterTide.type === 'high') {
+    const mid = (H0 + H1) / 2;
+    const amp = (H1 - H0) / 2;
+    height = mid - amp * Math.cos(Math.PI * clampedTau);
+    dhMs = amp * (Math.PI / (t1 - t0)) * Math.sin(Math.PI * clampedTau);
+  } else {
+    height = H0 + (H1 - H0) * clampedTau;
+    dhMs = (H1 - H0) / (t1 - t0);
+  }
+
+  const dhm = dhMs * 60 * 1000;
+
   let direction: 'incoming' | 'outgoing' | 'slack';
-  const heightDiff = afterTide.height - beforeTide.height;
-  if (Math.abs(heightDiff) < 0.1) {
+  if (Math.abs(dhm) < 0.035) {
     direction = 'slack';
-  } else if (heightDiff > 0) {
+  } else if (dhMs > 0) {
     direction = 'incoming';
   } else {
     direction = 'outgoing';
   }
 
-  // Determine type based on height relative to average
-  const avgHeight = sortedTides.reduce((sum, t) => sum + t.height, 0) / sortedTides.length;
-  const type: 'high' | 'low' = interpolatedHeight > avgHeight ? 'high' : 'low';
+  const segMid = (H0 + H1) / 2;
+  const type: 'high' | 'low' = height >= segMid ? 'high' : 'low';
 
-  console.log(`Interpolated: ${interpolatedHeight.toFixed(1)}m ${direction} between ${beforeTide.height}m and ${afterTide.height}m (ratio: ${ratio.toFixed(2)})`);
+  let nextChange = afterTide.time;
+  for (const e of sortedTides) {
+    if (e.time.getTime() > t) {
+      nextChange = e.time;
+      break;
+    }
+  }
 
   return {
-    height: Math.round(interpolatedHeight * 10) / 10,
-    type: type,
-    direction: direction,
-    nextChange: afterTide.time,
+    height: Math.round(height * 10) / 10,
+    type,
+    direction,
+    nextChange,
     timestamp: targetTime
   };
+}
+
+/**
+ * Linear blend of OWM 3-hourly samples; wind uses vector interpolation (direction + speed).
+ */
+function interpolateWeatherAtTime(forecast: WeatherConditions[], targetTime: Date): WeatherConditions {
+  if (forecast.length === 0) {
+    throw new Error('Empty weather forecast');
+  }
+  const sorted = [...forecast].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  const t = targetTime.getTime();
+
+  if (sorted.length === 1) {
+    return { ...sorted[0], timestamp: targetTime };
+  }
+
+  const firstT = sorted[0].timestamp.getTime();
+  const lastT = sorted[sorted.length - 1].timestamp.getTime();
+  if (t <= firstT) {
+    return { ...sorted[0], timestamp: targetTime };
+  }
+  if (t >= lastT) {
+    return { ...sorted[sorted.length - 1], timestamp: targetTime };
+  }
+
+  for (let j = 0; j < sorted.length - 1; j++) {
+    const t0 = sorted[j].timestamp.getTime();
+    const t1 = sorted[j + 1].timestamp.getTime();
+    if (t0 <= t && t <= t1) {
+      const a = (t - t0) / (t1 - t0);
+      const w0 = sorted[j];
+      const w1 = sorted[j + 1];
+      const deg0 = w0.windDeg ?? compassToApproxDegrees(w0.windDirection);
+      const deg1 = w1.windDeg ?? compassToApproxDegrees(w1.windDirection);
+      const u0 = -w0.windSpeed * Math.sin((deg0 * Math.PI) / 180);
+      const v0 = -w0.windSpeed * Math.cos((deg0 * Math.PI) / 180);
+      const u1 = -w1.windSpeed * Math.sin((deg1 * Math.PI) / 180);
+      const v1 = -w1.windSpeed * Math.cos((deg1 * Math.PI) / 180);
+      const u = u0 + (u1 - u0) * a;
+      const v = v0 + (v1 - v0) * a;
+      const speed = Math.round(Math.sqrt(u * u + v * v));
+      let dirDeg = (Math.atan2(-u, -v) * 180) / Math.PI;
+      if (dirDeg < 0) {
+        dirDeg += 360;
+      }
+      const gust = Math.round(w0.gustSpeed + (w1.gustSpeed - w0.gustSpeed) * a);
+      const temp = Math.round(w0.temperature + (w1.temperature - w0.temperature) * a);
+      return {
+        windSpeed: Math.max(0, speed),
+        windDirection: windDegreesToCompass(dirDeg),
+        windDeg: dirDeg,
+        gustSpeed: gust,
+        temperature: temp,
+        timestamp: targetTime
+      };
+    }
+  }
+
+  let best = sorted[0];
+  let bestDiff = Math.abs(best.timestamp.getTime() - t);
+  for (let i = 1; i < sorted.length; i++) {
+    const diff = Math.abs(sorted[i].timestamp.getTime() - t);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      best = sorted[i];
+    }
+  }
+  return { ...best, timestamp: targetTime };
 }
 
 async function generateDailyForecast(date: Date): Promise<DailyForecast> {
@@ -222,9 +304,13 @@ async function generateDailyForecast(date: Date): Promise<DailyForecast> {
 }
 
 async function generateRealDailyForecast(date: Date): Promise<DailyForecast> {
-  const hoursFromNow = Math.max(0, Math.floor((date.getTime() - Date.now()) / (1000 * 60 * 60)));
+  const dayEnd = new Date(date);
+  dayEnd.setHours(22, 0, 0, 0);
+  const hoursToLastSlot = Math.ceil((dayEnd.getTime() - Date.now()) / (1000 * 60 * 60));
+  const forecastHours = Math.min(120, Math.max(40, hoursToLastSlot + 6));
+
   const [weatherForecast, dailyTides] = await Promise.all([
-    weatherService.getHourlyForecast(24 + hoursFromNow),
+    weatherService.getHourlyForecast(forecastHours),
     tideService.getDailyTides(date)
   ]);
 
@@ -234,8 +320,7 @@ async function generateRealDailyForecast(date: Date): Promise<DailyForecast> {
     const time = new Date(date);
     time.setHours(hour, 0, 0, 0);
     
-    const hourIndex = Math.floor((time.getTime() - Date.now()) / (1000 * 60 * 60));
-    const weather = weatherForecast[Math.max(0, hourIndex)] || weatherForecast[0];
+    const weather = interpolateWeatherAtTime(weatherForecast, time);
     
     // Interpolate tide from daily tide times
     const tide = interpolateTideAtTime(time, dailyTides.tides);

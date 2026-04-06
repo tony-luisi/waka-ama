@@ -1,6 +1,7 @@
 import * as L from 'leaflet';
 import { ianShawPark } from './data';
 import { WeatherConditions } from './types';
+import { arrowRotationFromWindFromLabel } from './wind-display';
 
 // Bucklands Beach coordinates (approximate destination)
 const bucklandsBeach = {
@@ -77,14 +78,7 @@ export class WindMap {
   }
 
   private createWindArrow(weather: WeatherConditions): string {
-    const directions = {
-      'N': 0, 'NNE': 22.5, 'NE': 45, 'ENE': 67.5,
-      'E': 90, 'ESE': 112.5, 'SE': 135, 'SSE': 157.5,
-      'S': 180, 'SSW': 202.5, 'SW': 225, 'WSW': 247.5,
-      'W': 270, 'WNW': 292.5, 'NW': 315, 'NNW': 337.5
-    };
-
-    const angle = directions[weather.windDirection as keyof typeof directions] || 0;
+    const angle = arrowRotationFromWindFromLabel(weather.windDirection);
     const color = this.getWindColor(weather.windSpeed);
     const size = 16; // Fixed size for consistency
 
@@ -163,7 +157,7 @@ export class WindMap {
       <div class="wind-popup">
         <h4>💨 Current Wind</h4>
         <p><strong>Speed:</strong> ${weather.windSpeed} km/h</p>
-        <p><strong>Direction:</strong> ${weather.windDirection}</p>
+        <p><strong>Direction:</strong> ${weather.windDirection} <span style="opacity:0.85;font-size:0.9em">(from)</span></p>
         <p><strong>Gusts:</strong> ${weather.gustSpeed} km/h</p>
         <p><strong>Temperature:</strong> ${weather.temperature}°C</p>
         <hr style="margin: 8px 0;">
