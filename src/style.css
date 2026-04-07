@@ -175,7 +175,7 @@ header p {
 
 .hourly-header {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1.2fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1.4fr 0.75fr 1.1fr 0.95fr 1fr 0.85fr;
   gap: 10px;
   padding: 10px 15px;
   background: linear-gradient(135deg, var(--ocean-medium) 0%, var(--ocean-light) 100%);
@@ -199,10 +199,17 @@ header p {
 
 .hourly-main {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1.2fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1.4fr 0.75fr 1.1fr 0.95fr 1fr 0.85fr;
   gap: 10px;
   padding: 12px 15px;
   align-items: center;
+}
+
+.hour-difficulty-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
 }
 
 .hourly-details {
@@ -217,6 +224,26 @@ header p {
   color: var(--ocean-medium);
   padding: 10px 0;
   font-weight: 500;
+}
+
+.paddle-guidance-headline {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ocean-deep);
+  margin: 0 0 10px 0;
+  line-height: 1.35;
+}
+
+.paddle-guidance-p {
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ocean-medium);
+  margin: 0 0 10px 0;
+}
+
+.paddle-guidance-p:last-child {
+  margin-bottom: 0;
 }
 
 .hour-time {
@@ -234,12 +261,14 @@ header p {
 }
 
 .hour-difficulty {
-  padding: 4px 8px;
+  padding: 4px 6px;
   border-radius: 20px;
   color: white;
   font-weight: 600;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  min-width: 2.75rem;
 }
 
 .hour-difficulty.easy {
@@ -606,7 +635,7 @@ header p {
   }
   
   .hourly-header, .hourly-main {
-    grid-template-columns: 0.8fr 1.1fr 0.7fr 0.7fr 0.7fr 0.7fr;
+    grid-template-columns: 0.75fr 1fr 0.55fr 0.65fr 0.6fr 0.65fr 0.55fr;
     font-size: 0.8rem;
     gap: 6px;
     padding: 8px 10px;
@@ -620,6 +649,12 @@ header p {
   
   .hour-wind, .hour-gusts, .hour-tide, .hour-temp {
     font-size: 0.75rem;
+  }
+
+  .hour-difficulty {
+    font-size: 0.68rem;
+    padding: 3px 4px;
+    min-width: 2.25rem;
   }
   
   .wind-arrow {

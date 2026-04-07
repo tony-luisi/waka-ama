@@ -2,6 +2,26 @@ import { HourlyForecast, DailyForecast, ExtendedForecast, DailyTides, PaddleDire
 import { arrowRotationFromWindFromLabel } from './wind-display';
 import { tideMovementLabel } from './tide-display';
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function paddleGuidanceHtml(forecast: HourlyForecast): string {
+  const { headline, paragraphs } = forecast.paddleGuidance;
+  const body = paragraphs.map((p) => `<p class="paddle-guidance-p">${escapeHtml(p)}</p>`).join('');
+  return `<p class="paddle-guidance-headline">${escapeHtml(headline)}</p>${body}`;
+}
+
+function difficultyCellHtml(forecast: HourlyForecast): string {
+  const { score, level } = forecast.difficulty;
+  const label = `Overall difficulty ${score} out of 10 (${level})`;
+  return `<div class="hour-difficulty ${level}" aria-label="${escapeHtml(label)}">${score}/10</div>`;
+}
+
 /** HIGH/LOW badge only on the same local clock-hour as the extremum (avoids "HIGH" at :00 when HW was :59). */
 function getTideTimeIndicator(forecast: HourlyForecast, dailyTides?: DailyTides): string {
   if (!dailyTides) return '';
@@ -50,6 +70,9 @@ export function createHourlyForecastElement(forecast: HourlyForecast, dailyTides
       <div class="hour-paddle-direction">
         ${getPaddleDirectionIndicatorClickable(forecast.paddleDirections, itemId)}
       </div>
+      <div class="hour-difficulty-wrap">
+        ${difficultyCellHtml(forecast)}
+      </div>
       <div class="hour-wind">
         <span class="wind-arrow" style="transform: rotate(${arrowRotationFromWindFromLabel(forecast.weather.windDirection)}deg)">↑</span>
         ${forecast.weather.windSpeed}km/h
@@ -65,7 +88,7 @@ export function createHourlyForecastElement(forecast: HourlyForecast, dailyTides
     </div>
     <div class="hourly-details" id="${itemId}-details" style="display: none;">
       <div class="paddle-direction-explanation">
-        ${forecast.paddleDirections.reasoning}
+        ${paddleGuidanceHtml(forecast)}
       </div>
     </div>
   `;
@@ -110,7 +133,7 @@ function getPaddleDirectionIndicatorClickable(paddleDirections: PaddleDirectionA
     }
   }
   
-  return `<button class="paddle-direction-btn ${className}" onclick="toggleHourlyDetails('${itemId}')" aria-label="Show paddle direction details">
+  return `<button class="paddle-direction-btn ${className}" onclick="toggleHourlyDetails('${itemId}')" aria-label="Show conditions and paddle guidance">
     <span class="btn-full-text">${text}</span>
     <span class="btn-short-text">${shortText}</span>
   </button>`;
@@ -176,6 +199,7 @@ export function createDailyForecastElement(forecast: DailyForecast, title: strin
       <div class="hourly-header">
         <div>Time</div>
         <div>Paddling Direction</div>
+        <div>Difficulty</div>
         <div>Wind</div>
         <div>Gusts</div>
         <div>Tide</div>

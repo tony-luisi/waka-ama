@@ -54,6 +54,12 @@ export interface PaddleDirectionAssessment {
   reasoning: string;
 }
 
+/** Extended-forecast row copy: headline plus paragraphs (plain text; escape when rendering HTML). */
+export interface PaddleGuidance {
+  headline: string;
+  paragraphs: string[];
+}
+
 export interface LocationData {
   name: string;
   coordinates: {
@@ -70,6 +76,7 @@ export interface HourlyForecast {
   tide: TideData;
   difficulty: DifficultyAssessment;
   paddleDirections: PaddleDirectionAssessment;
+  paddleGuidance: PaddleGuidance;
 }
 
 export interface DailyForecast {

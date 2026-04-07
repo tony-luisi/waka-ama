@@ -1,4 +1,5 @@
 import { WeatherConditions, TideData, PaddlingConditions, LocationData, ExtendedForecast, DailyForecast, HourlyForecast, TideTime } from './types';
+import { buildPaddleGuidance } from './forecast-guidance';
 import { assessPaddlingDifficulty, assessPaddleDirections } from './difficulty';
 import { WeatherService, windDegreesToCompass } from './api/weather-service';
 import { TideService } from './api/tide-service';
@@ -338,13 +339,15 @@ async function generateRealDailyForecast(date: Date): Promise<DailyForecast> {
     
     const difficulty = assessPaddlingDifficulty(conditions);
     const paddleDirections = assessPaddleDirections(conditions);
+    const paddleGuidance = buildPaddleGuidance(conditions, paddleDirections);
     
     hourlyForecasts.push({
       time,
       weather,
       tide,
       difficulty,
-      paddleDirections
+      paddleDirections,
+      paddleGuidance
     });
   }
   
@@ -376,13 +379,15 @@ function generateFallbackDailyForecast(date: Date): DailyForecast {
     
     const difficulty = assessPaddlingDifficulty(conditions);
     const paddleDirections = assessPaddleDirections(conditions);
+    const paddleGuidance = buildPaddleGuidance(conditions, paddleDirections);
     
     hourlyForecasts.push({
       time,
       weather,
       tide,
       difficulty,
-      paddleDirections
+      paddleDirections,
+      paddleGuidance
     });
   }
   
