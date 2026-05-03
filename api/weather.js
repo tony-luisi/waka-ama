@@ -46,9 +46,10 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Weather API proxy error:', error);
+    const message = error instanceof Error ? error.message : String(error);
     res.status(500).json({ 
       error: 'Failed to fetch weather data',
-      message: error.message 
+      message
     });
   }
 }

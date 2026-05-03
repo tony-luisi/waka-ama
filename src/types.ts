@@ -1,10 +1,12 @@
 export interface WeatherConditions {
   windSpeed: number;
   windDirection: string;
-  /** Degrees wind comes FROM (OpenWeather / met convention); used for interpolation. */
+  /** Degrees wind comes FROM (met convention). */
   windDeg?: number;
   gustSpeed: number;
   temperature: number;
+  rainMm: number;
+  rainProbability: number;
   timestamp: Date;
 }
 
@@ -12,6 +14,8 @@ export interface TideData {
   height: number;
   type: 'high' | 'low';
   direction: 'incoming' | 'outgoing' | 'slack';
+  /** Estimated tidal current speed (km/h). Positive magnitude only; direction field gives sign context. */
+  currentSpeedKmh: number;
   nextChange: Date;
   timestamp: Date;
 }
@@ -28,69 +32,65 @@ export interface DailyTides {
   isFallback?: boolean;
 }
 
-export interface PaddlingConditions {
-  weather: WeatherConditions;
-  tide: TideData;
-  timeOfDay: Date;
-  location: string;
+export interface LocationProfile {
+  nickname: string;
+  coordinates: { lat: number; lng: number };
+  exposure: 'sheltered' | 'moderate' | 'exposed';
+  /** Approximate fetch distance (km) for each 16-point wind direction. */
+  fetchByDirection: Record<string, number>;
 }
 
-export interface DifficultyAssessment {
-  score: number;
+export interface RouteSegment {
+  from: string;
+  to: string;
+  bearingDeg: number;
+  distanceKm: number;
+}
+
+export interface ChopConditions {
+  height: number; // metres
+  fetchKm: number;
+}
+
+/**
+ * Net-assessment for a single segment.
+ * All impact fields are in km/h. Positive = helps you, negative = works against you.
+ */
+export interface SegmentConditions {
+  segment: RouteSegment;
+  windImpactKmh: number;
+  tideImpactKmh: number;
+  chopImpactKmh: number;
+  chopHeightCm: number;
+  rainImpactKmh: number;
+  netAssistanceKmh: number;
   level: 'easy' | 'moderate' | 'difficult';
-  recommendation: string;
-  factors: {
-    wind: number;
-    tide: number;
-    time: number;
-    temperature: number;
-  };
 }
 
-export interface PaddleDirectionAssessment {
-  outgoing: DifficultyAssessment;
-  incoming: DifficultyAssessment;
-  recommended: 'outgoing' | 'incoming' | 'both' | 'neither';
-  reasoning: string;
-}
-
-/** Extended-forecast row copy: headline plus paragraphs (plain text; escape when rendering HTML). */
-export interface PaddleGuidance {
-  headline: string;
-  paragraphs: string[];
-}
-
-export interface LocationData {
-  name: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  idealWindDirections: string[];
-  sheltered: boolean;
-}
-
-export interface HourlyForecast {
+export interface HourlyTripAssessment {
   time: Date;
   weather: WeatherConditions;
   tide: TideData;
-  difficulty: DifficultyAssessment;
-  paddleDirections: PaddleDirectionAssessment;
-  paddleGuidance: PaddleGuidance;
+  outboundSegments: SegmentConditions[];
+  returnSegments: SegmentConditions[];
+  outboundNetKmh: number;
+  returnNetKmh: number;
+  outboundLevel: 'easy' | 'moderate' | 'difficult';
+  returnLevel: 'easy' | 'moderate' | 'difficult';
+  roundTripNetKmh: number;
 }
 
-export interface DailyForecast {
+export interface TripDayForecast {
   date: Date;
-  hourlyForecasts: HourlyForecast[];
-  summary: {
-    bestTime: Date;
-    worstTime: Date;
-    averageDifficulty: number;
-    conditions: string;
-  };
+  hourlyAssessments: HourlyTripAssessment[];
+  bestWindow: { start: Date; end: Date; netAssistanceKmh: number } | null;
+  worstWindow: { start: Date; end: Date; netAssistanceKmh: number } | null;
 }
 
-export interface ExtendedForecast {
-  today: DailyForecast;
-  tomorrow: DailyForecast;
+export interface AISynthesis {
+  narrative: string;
+  bestWindow: string;
+  routeRecommendation: string;
+  safetyAlerts: string[];
+  perSegmentNotes: Record<string, string>;
 }

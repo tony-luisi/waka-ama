@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waka Ama — Route Journey Mockup</title>
+  <style>
+    :root {
+      --ocean-deep: #0a2540;
+      --ocean-blue: #1e3a5f;
+      --ocean-medium: #2c5282;
+      --ocean-light: #3182ce;
+      --sun-gold: #fbbf24;
+      --coral: #fb923c;
+      --seafoam: #e0f2fe;
+      --pearl: #f8fafc;
+      --easy: #22c55e;
+      --moderate: #f59e0b;
+      --difficult: #ef4444;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--ocean-deep) 0%, var(--ocean-blue) 50%, var(--ocean-medium) 100%);
+      min-height: 100vh;
+      color: var(--ocean-deep);
+    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    
+    header { text-align: center; color: var(--sun-gold); margin-bottom: 24px; }
+    header h1 { font-size: 2.2rem; margin-bottom: 6px; }
+    header p { color: #cbd5e1; font-size: 1rem; }
+    
+    .ai-card {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: white;
+    }
+    .ai-card .ai-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(99, 102, 241, 0.2);
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600; color: #a5b4fc;
+      margin-bottom: 12px;
+    }
+    .ai-card h2 { font-size: 1.3rem; margin-bottom: 12px; color: white; }
+    .ai-card .narrative { font-size: 1rem; line-height: 1.6; margin-bottom: 16px; color: #e2e8f0; }
+    .ai-card .route-rec {
+      background: rgba(34, 197, 94, 0.15);
+      border-left: 3px solid var(--easy);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .ai-card .safety-alert {
+      background: rgba(239, 68, 68, 0.15);
+      border-left: 3px solid var(--difficult);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    /* Route Segments */
+    .route-section {
+      background: linear-gradient(135deg, var(--pearl) 0%, var(--seafoam) 100%);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .route-section h3 {
+      color: var(--ocean-deep);
+      margin-bottom: 16px;
+      font-size: 1.2rem;
+    }
+    .route-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .route-tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .route-tab.active {
+      background: var(--ocean-light);
+      color: white;
+    }
+    .route-tab:not(.active) {
+      background: white;
+      color: var(--ocean-medium);
+    }
+
+    .route-visual {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    .route-stop {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 70px;
+    }
+    .route-stop .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 3px solid var(--ocean-light);
+      background: white;
+    }
+    .route-stop .label {
+      font-size: 0.7rem;
+      text-align: center;
+      color: var(--ocean-medium);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .route-segment {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 60px;
+    }
+    .route-segment .bar {
+      height: 8px;
+      width: 100%;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+    .route-segment .bar.easy { background: var(--easy); }
+    .route-segment .bar.moderate { background: var(--moderate); }
+    .route-segment .bar.difficult { background: var(--difficult); }
+    .route-segment .score {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--ocean-deep);
+    }
+
+    .segment-detail {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 8px;
+    }
+    .segment-detail h4 {
+      color: var(--ocean-deep);
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    .segment-detail .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+    .segment-detail .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .segment-detail .detail-label {
+      color: var(--ocean-medium);
+      font-size: 0.75rem;
+    }
+    .segment-detail .detail-value {
+      font-weight: 700;
+      color: var(--ocean-deep);
+    }
+
+    /* Location Cards with Leg Info */
+    .location-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .loc-card {
+      background: linear-gradient(135deg, var(--pearl) 0%, var(--seafoam) 100%);
+      border-radius: 14px;
+      padding: 16px;
+      border: 2px solid transparent;
+      transition: transform 0.15s, border-color 0.15s;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .loc-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--ocean-light);
+    }
+    .loc-card.top-pick::before {
+      content: '★ TOP PICK';
+      position: absolute; top: 0; right: 0;
+      background: var(--easy);
+      color: white;
+      font-size: 0.65rem; font-weight: 700;
+      padding: 3px 10px;
+      border-bottom-left-radius: 8px;
+    }
+    .loc-card .loc-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .loc-card .loc-name { font-weight: 700; font-size: 1.05rem; color: var(--ocean-deep); }
+    .loc-card .diff-badge {
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 700; color: white;
+    }
+    .diff-badge.easy { background: var(--easy); }
+    .diff-badge.moderate { background: var(--moderate); }
+    .diff-badge.difficult { background: var(--difficult); }
+    .loc-card .score-row {
+      display: flex; align-items: baseline; gap: 6px;
+      margin-bottom: 8px;
+    }
+    .loc-card .score-big { font-size: 1.6rem; font-weight: 800; color: var(--ocean-deep); }
+    .loc-card .score-label { font-size: 0.8rem; color: var(--ocean-medium); }
+    .loc-card .legs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .loc-card .leg {
+      flex: 1;
+      background: white;
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      font-size: 0.8rem;
+    }
+    .loc-card .leg .leg-label {
+      font-size: 0.7rem;
+      color: var(--ocean-medium);
+      margin-bottom: 2px;
+    }
+    .loc-card .leg .leg-score {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .loc-card .leg .leg-score.easy { color: var(--easy); }
+    .loc-card .leg .leg-score.moderate { color: var(--moderate); }
+    .loc-card .leg .leg-score.difficult { color: var(--difficult); }
+    .loc-card .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      font-size: 0.8rem;
+    }
+    .loc-card .metric {
+      display: flex; align-items: center; gap: 4px;
+      color: var(--ocean-medium);
+    }
+    .loc-card .metric-icon { font-size: 1rem; }
+
+    /* Responsive */
+    @media (max-width: 1024px) { .location-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .location-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🛶 Tāmaki Estuary Conditions</h1>
+      <p>Route-aware difficulty • Wind, tide & chop per leg</p>
+    </header>
+
+    <!-- AI Synthesis -->
+    <div class="ai-card">
+      <div class="ai-badge">🤖 AI Forecast</div>
+      <h2>Friday — Outbound Route is Favoured</h2>
+      <p class="narrative">
+        SW winds give a tailwind on the outbound leg (west → east), but the outgoing tide works against you.
+        The return leg has a headwind but gets a boost from the tide. Overall, the outbound journey scores better.
+      </p>
+      <div class="route-rec">
+        🏆 <strong>Best route:</strong> Launch at <strong>The Ramp</strong>, paddle east to <strong>No 9</strong>.<br>
+        The SW tailwind outweighs the opposing tide on most segments. Return when the tide turns.
+      </div>
+      <div class="safety-alert">
+        ⚠️ <strong>Segment alert:</strong> <strong>Red Pole → Second Bridge</strong> is the hardest outbound leg — wind and tide both work against you here.
+      </div>
+    </div>
+
+    <!-- Route Segments -->
+    <div class="route-section">
+      <h3>🗺️ Route Segments</h3>
+      <div class="route-tabs">
+        <button class="route-tab active">Outbound (West → East)</button>
+        <button class="route-tab">Inbound (East → West)</button>
+      </div>
+
+      <div class="route-visual">
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">The Ramp</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar easy"></div>
+          <div class="score">8.2</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">Rayglass</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar easy"></div>
+          <div class="score">8.5</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">Red Pole</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar moderate"></div>
+          <div class="score">6.0</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">2nd Bridge</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar easy"></div>
+          <div class="score">7.8</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">Tamaki</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar easy"></div>
+          <div class="score">8.0</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">St Kents</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar easy"></div>
+          <div class="score">7.5</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">The Kat</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar moderate"></div>
+          <div class="score">6.2</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">1st Red</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar easy"></div>
+          <div class="score">7.2</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">3rd Red</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar easy"></div>
+          <div class="score">8.1</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">HMB</div>
+        </div>
+        <div class="route-segment">
+          <div class="bar easy"></div>
+          <div class="score">8.4</div>
+        </div>
+        <div class="route-stop">
+          <div class="dot"></div>
+          <div class="label">No 9</div>
+        </div>
+      </div>
+
+      <div class="segment-detail">
+        <h4>Red Pole → Second Bridge (Outbound)</h4>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Difficulty</span>
+            <span class="detail-value" style="color:var(--moderate)">6.0 / 10</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Wind</span>
+            <span class="detail-value">12 km/h SW — crosswind</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Tide</span>
+            <span class="detail-value">Outgoing — against paddle</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Chop</span>
+            <span class="detail-value">18 cm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Location Cards with Leg Scores -->
+    <div class="location-grid">
+      <div class="loc-card top-pick">
+        <div class="loc-header">
+          <span class="loc-name">No 9</span>
+          <span class="diff-badge easy">EASY</span>
+        </div>
+        <div class="score-row">
+          <span class="score-big">8.5</span>
+          <span class="score-label">/ 10 — conditions now</span>
+        </div>
+        <div class="legs">
+          <div class="leg">
+            <div class="leg-label">← From HMB</div>
+            <div class="leg-score easy">8.4</div>
+          </div>
+          <div class="leg">
+            <div class="leg-label">End of route →</div>
+            <div class="leg-score" style="color:#9ca3af">—</div>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span class="metric-icon">💨</span> 12 km/h SW</div>
+          <div class="metric"><span class="metric-icon">🌊</span> Chop 12 cm</div>
+          <div class="metric"><span class="metric-icon">🌧️</span> No rain</div>
+          <div class="metric"><span class="metric-icon">🌊</span> Tide 1.4m ↓</div>
+        </div>
+      </div>
+
+      <div class="loc-card">
+        <div class="loc-header">
+          <span class="loc-name">The Ramp</span>
+          <span class="diff-badge difficult">DIFFICULT</span>
+        </div>
+        <div class="score-row">
+          <span class="score-big">3.5</span>
+          <span class="score-label">/ 10 — conditions now</span>
+        </div>
+        <div class="legs">
+          <div class="leg">
+            <div class="leg-label">Start of route →</div>
+            <div class="leg-score" style="color:#9ca3af">—</div>
+          </div>
+          <div class="leg">
+            <div class="leg-label">← From Rayglass</div>
+            <div class="leg-score difficult">3.2</div>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span class="metric-icon">💨</span> 12 km/h SW</div>
+          <div class="metric"><span class="metric-icon">🌊</span> Chop 26 cm</div>
+          <div class="metric"><span class="metric-icon">🌧️</span> No rain</div>
+          <div class="metric"><span class="metric-icon">🌊</span> Tide 1.4m ↓</div>
+        </div>
+      </div>
+
+      <div class="loc-card">
+        <div class="loc-header">
+          <span class="loc-name">Red Pole</span>
+          <span class="diff-badge moderate">MODERATE</span>
+        </div>
+        <div class="score-row">
+          <span class="score-big">5.8</span>
+          <span class="score-label">/ 10 — conditions now</span>
+        </div>
+        <div class="legs">
+          <div class="leg">
+            <div class="leg-label">→ To 2nd Bridge</div>
+            <div class="leg-score moderate">6.0</div>
+          </div>
+          <div class="leg">
+            <div class="leg-label">← From Rayglass</div>
+            <div class="leg-score easy">8.5</div>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span class="metric-icon">💨</span> 12 km/h SW</div>
+          <div class="metric"><span class="metric-icon">🌊</span> Chop 18 cm</div>
+          <div class="metric"><span class="metric-icon">🌧️</span> No rain</div>
+          <div class="metric"><span class="metric-icon">🌊</span> Tide 1.4m ↓</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

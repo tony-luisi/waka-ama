@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conditions Panel Mockup</title>
+  <style>
+    :root {
+      --ocean-deep: #0a2540;
+      --ocean-blue: #1e3a5f;
+      --ocean-medium: #2c5282;
+      --ocean-light: #3182ce;
+      --sun-gold: #fbbf24;
+      --coral: #fb923c;
+      --seafoam: #e0f2fe;
+      --pearl: #f8fafc;
+      --easy: #22c55e;
+      --moderate: #f59e0b;
+      --difficult: #ef4444;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--ocean-deep) 0%, var(--ocean-blue) 50%, var(--ocean-medium) 100%);
+      min-height: 100vh;
+      color: var(--ocean-deep);
+      padding: 20px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    .panel {
+      background: linear-gradient(135deg, var(--pearl) 0%, var(--seafoam) 100%);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .panel h3 { color: var(--ocean-deep); margin-bottom: 16px; font-size: 1.1rem; }
+
+    /* Conditions Grid */
+    .cond-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .cond-chart {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .cond-chart h4 {
+      font-size: 0.85rem;
+      color: var(--ocean-medium);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Wind Chart */
+    .wind-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .wind-row {
+      display: grid;
+      grid-template-columns: 40px 40px 1fr 50px;
+      gap: 10px;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .wind-row .w-hour {
+      color: var(--ocean-medium);
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+    .wind-row .w-arrow {
+      font-size: 1.4rem;
+      text-align: center;
+    }
+    .wind-row .w-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .wind-row .w-bar {
+      height: 20px;
+      border-radius: 4px;
+      background: var(--ocean-light);
+      min-width: 4px;
+    }
+    .wind-row .w-speed {
+      font-weight: 700;
+      color: var(--ocean-deep);
+      min-width: 40px;
+    }
+    .wind-row .w-gust {
+      font-size: 0.75rem;
+      color: var(--coral);
+    }
+
+    /* Tide Chart */
+    .tide-chart {
+      position: relative;
+      height: 180px;
+    }
+    .tide-curve {
+      position: absolute;
+      bottom: 30px;
+      left: 40px;
+      right: 20px;
+      height: 120px;
+    }
+    .tide-curve svg {
+      width: 100%;
+      height: 100%;
+    }
+    .tide-labels {
+      position: absolute;
+      bottom: 0;
+      left: 40px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--ocean-medium);
+    }
+    .tide-ylabels {
+      position: absolute;
+      left: 0;
+      bottom: 30px;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--ocean-medium);
+      text-align: right;
+      width: 35px;
+    }
+    .tide-highlow {
+      position: absolute;
+      top: 4px;
+      right: 10px;
+      font-size: 0.75rem;
+      color: var(--ocean-medium);
+      text-align: right;
+      line-height: 1.6;
+    }
+
+    /* Rain & Temp */
+    .rain-temp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .mini-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 100px;
+      padding-top: 20px;
+    }
+    .mini-bar {
+      flex: 1;
+      border-radius: 4px 4px 0 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 4px;
+      font-size: 0.65rem;
+      color: white;
+      font-weight: 600;
+      position: relative;
+    }
+    .mini-bar .bar-label {
+      position: absolute;
+      top: -16px;
+      font-size: 0.6rem;
+      color: var(--ocean-medium);
+      font-weight: 600;
+    }
+    .rain-bar { background: var(--ocean-light); }
+    .temp-bar { background: var(--coral); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .cond-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="panel">
+      <h3>🌤️ Conditions (Tāmaki Estuary)</h3>
+      <div class="cond-grid">
+        <!-- Wind Chart -->
+        <div class="cond-chart">
+          <h4>Wind & Gusts</h4>
+          <div class="wind-rows">
+            <div class="wind-row">
+              <div class="w-hour">9am</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:55%"></div>
+                <span class="w-speed">14</span>
+                <span class="w-gust">g22</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">10am</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:65%"></div>
+                <span class="w-speed">16</span>
+                <span class="w-gust">g24</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">11am</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:60%"></div>
+                <span class="w-speed">15</span>
+                <span class="w-gust">g23</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">12pm</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:50%"></div>
+                <span class="w-speed">12</span>
+                <span class="w-gust">g20</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">1pm</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:48%"></div>
+                <span class="w-speed">12</span>
+                <span class="w-gust">g18</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">2pm</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:40%"></div>
+                <span class="w-speed">10</span>
+                <span class="w-gust">g16</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">3pm</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:40%"></div>
+                <span class="w-speed">10</span>
+                <span class="w-gust">g15</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">4pm</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:36%"></div>
+                <span class="w-speed">9</span>
+                <span class="w-gust">g14</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">5pm</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:44%"></div>
+                <span class="w-speed">11</span>
+                <span class="w-gust">g17</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">6pm</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:48%"></div>
+                <span class="w-speed">12</span>
+                <span class="w-gust">g19</span>
+              </div>
+            </div>
+            <div class="wind-row">
+              <div class="w-hour">7pm</div>
+              <div class="w-arrow" style="transform:rotate(225deg)">↑</div>
+              <div class="w-bar-wrap">
+                <div class="w-bar" style="width:52%"></div>
+                <span class="w-speed">13</span>
+                <span class="w-gust">g20</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tide Chart -->
+        <div class="cond-chart">
+          <h4>Tide Height</h4>
+          <div class="tide-chart">
+            <div class="tide-ylabels">
+              <span>2.0m</span>
+              <span>1.5m</span>
+              <span>1.0m</span>
+              <span>0.5m</span>
+              <span>0m</span>
+            </div>
+            <div class="tide-curve">
+              <svg viewBox="0 0 300 120" preserveAspectRatio="none">
+                <path d="M0,60 Q30,20 60,30 T120,80 T180,30 T240,80 T300,40" 
+                      fill="none" stroke="var(--ocean-light)" stroke-width="3"/>
+                <path d="M0,60 Q30,20 60,30 T120,80 T180,30 T240,80 T300,40 L300,120 L0,120 Z" 
+                      fill="rgba(49,130,206,0.15)"/>
+                <!-- High tide markers -->
+                <circle cx="60" cy="30" r="4" fill="var(--ocean-light)"/>
+                <circle cx="180" cy="30" r="4" fill="var(--ocean-light)"/>
+                <!-- Low tide markers -->
+                <circle cx="120" cy="80" r="4" fill="var(--coral)"/>
+                <circle cx="240" cy="80" r="4" fill="var(--coral)"/>
+                <!-- Current time line -->
+                <line x1="195" y1="0" x2="195" y2="120" stroke="var(--sun-gold)" stroke-width="2" stroke-dasharray="5,3"/>
+              </svg>
+            </div>
+            <div class="tide-labels">
+              <span>6am</span>
+              <span>9am</span>
+              <span>12pm</span>
+              <span>3pm</span>
+              <span>6pm</span>
+              <span>9pm</span>
+            </div>
+            <div class="tide-highlow">
+              <div>🔵 High 6:24a (1.8m)</div>
+              <div>🟠 Low 12:47p (0.3m)</div>
+              <div>🔵 High 7:15p (1.9m)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rain -->
+        <div class="cond-chart">
+          <h4>Rain Probability (%)</h4>
+          <div class="mini-chart">
+            <div class="mini-bar rain-bar" style="height:10%"><span class="bar-label">9a</span>5</div>
+            <div class="mini-bar rain-bar" style="height:10%"><span class="bar-label">10a</span>5</div>
+            <div class="mini-bar rain-bar" style="height:15%"><span class="bar-label">11a</span>10</div>
+            <div class="mini-bar rain-bar" style="height:20%"><span class="bar-label">12p</span>15</div>
+            <div class="mini-bar rain-bar" style="height:10%"><span class="bar-label">1p</span>5</div>
+            <div class="mini-bar rain-bar" style="height:5%"><span class="bar-label">2p</span>0</div>
+            <div class="mini-bar rain-bar" style="height:5%"><span class="bar-label">3p</span>0</div>
+            <div class="mini-bar rain-bar" style="height:10%"><span class="bar-label">4p</span>5</div>
+            <div class="mini-bar rain-bar" style="height:20%"><span class="bar-label">5p</span>15</div>
+            <div class="mini-bar rain-bar" style="height:35%"><span class="bar-label">6p</span>30</div>
+            <div class="mini-bar rain-bar" style="height:60%"><span class="bar-label">7p</span>55</div>
+          </div>
+        </div>
+
+        <!-- Temperature -->
+        <div class="cond-chart">
+          <h4>Temperature (°C)</h4>
+          <div class="mini-chart">
+            <div class="mini-bar temp-bar" style="height:60%"><span class="bar-label">9a</span>18</div>
+            <div class="mini-bar temp-bar" style="height:68%"><span class="bar-label">10a</span>20</div>
+            <div class="mini-bar temp-bar" style="height:76%"><span class="bar-label">11a</span>22</div>
+            <div class="mini-bar temp-bar" style="height:84%"><span class="bar-label">12p</span>23</div>
+            <div class="mini-bar temp-bar" style="height:92%"><span class="bar-label">1p</span>24</div>
+            <div class="mini-bar temp-bar" style="height:100%"><span class="bar-label">2p</span>25</div>
+            <div class="mini-bar temp-bar" style="height:96%"><span class="bar-label">3p</span>24</div>
+            <div class="mini-bar temp-bar" style="height:88%"><span class="bar-label">4p</span>23</div>
+            <div class="mini-bar temp-bar" style="height:80%"><span class="bar-label">5p</span>22</div>
+            <div class="mini-bar temp-bar" style="height:72%"><span class="bar-label">6p</span>20</div>
+            <div class="mini-bar temp-bar" style="height:64%"><span class="bar-label">7p</span>19</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

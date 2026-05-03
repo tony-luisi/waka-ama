@@ -122,12 +122,13 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('=== NIWA API PROXY ERROR ===');
     console.error('Error type:', typeof error);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Error message:', message);
+    console.error('Error stack:', error instanceof Error ? error.stack : undefined);
     console.error('=== NIWA API PROXY END (ERROR) ===');
     res.status(500).json({ 
       error: 'Failed to fetch tide data',
-      message: error.message 
+      message
     });
   }
 }

@@ -51,7 +51,7 @@ export class TideService {
       throw new Error('NIWA API key not configured');
     }
 
-    const { lat, lng } = API_CONFIG.locations.ianShawPark;
+    const { lat, lng } = API_CONFIG.estuaryCentre;
     const now = new Date();
     
     const params = new URLSearchParams({
@@ -93,11 +93,13 @@ export class TideService {
     const isHigh = this.determineTideType(currentValue.value, nextValues);
     const direction = this.determineTideDirection(data.values, idx);
     const nextChange = this.findNextTideChange(data.values, idx);
+    const currentSpeedKmh = this.estimateCurrentSpeed(data.values, idx);
     
     return {
       height: Math.round(currentValue.value * 10) / 10,
       type: isHigh ? 'high' : 'low',
       direction: direction,
+      currentSpeedKmh,
       nextChange: nextChange,
       timestamp: new Date(currentValue.time)
     };
@@ -138,7 +140,7 @@ export class TideService {
       throw new Error('NIWA API key not configured');
     }
 
-    const { lat, lng } = API_CONFIG.locations.ianShawPark;
+    const { lat, lng } = API_CONFIG.estuaryCentre;
     const now = new Date();
     const numberOfDays = Math.ceil(hours / 24);
     
@@ -179,10 +181,44 @@ export class TideService {
         height: Math.round(value.value * 10) / 10,
         type: isHigh ? 'high' : 'low',
         direction: direction,
+        currentSpeedKmh: this.estimateCurrentSpeed(data.values, index),
         nextChange: this.findNextTideChange(data.values, index),
         timestamp: new Date(value.time)
       };
     });
+  }
+
+  /**
+   * Estimate tidal current speed (km/h) from the rate of height change between
+   * consecutive NIWA samples. Uses the same amplification factor as the harmonic
+   * interpolator in data.ts.
+   */
+  private estimateCurrentSpeed(
+    values: Array<{ time: string; value: number }>,
+    index: number
+  ): number {
+    if (values.length < 2) return 0;
+    let dhMs: number;
+    if (index < values.length - 1) {
+      const dt = new Date(values[index + 1].time).getTime() - new Date(values[index].time).getTime();
+      dhMs = dt > 0 ? (values[index + 1].value - values[index].value) / dt : 0;
+    } else {
+      const dt = new Date(values[index].time).getTime() - new Date(values[index - 1].time).getTime();
+      dhMs = dt > 0 ? (values[index].value - values[index - 1].value) / dt : 0;
+    }
+    const dhMps = Math.abs(dhMs) * 1000; // m/s
+    const rawKmh = dhMps * 3.6;
+    return Math.min(4.0, Math.round(rawKmh * 7000 * 10) / 10);
+  }
+
+  /**
+   * Estimate current speed from the fallback sine-wave tide model.
+   */
+  private estimateFallbackCurrentSpeed(hour: number): number {
+    const phase = (hour + 3) * Math.PI / 6;
+    const dhDhour = 0.8 * (Math.PI / 6) * Math.cos(phase);
+    const dhMps = dhDhour / 3600;
+    return Math.min(4.0, Math.round(Math.abs(dhMps) * 3.6 * 7000 * 10) / 10);
   }
 
   private determineTideType(currentHeight: number, nextValues: Array<{value: number}>): boolean {
@@ -245,10 +281,13 @@ export class TideService {
     else if (heightDiff < -0.1) direction = 'outgoing';
     else direction = 'slack';
     
+    const currentSpeedKmh = this.estimateFallbackCurrentSpeed(hour);
+    
     return {
       height: Math.round(height * 10) / 10,
       type: height > 1.2 ? 'high' : 'low',
       direction: direction,
+      currentSpeedKmh,
       nextChange: new Date(now.getTime() + (6 - (hour % 6)) * 60 * 60 * 1000),
       timestamp: now
     };
@@ -280,6 +319,7 @@ export class TideService {
         height: Math.round(height * 10) / 10,
         type: height > 1.2 ? 'high' : 'low',
         direction: direction,
+        currentSpeedKmh: this.estimateFallbackCurrentSpeed(hour),
         nextChange: new Date(time.getTime() + 6 * 60 * 60 * 1000),
         timestamp: time
       });
@@ -296,7 +336,7 @@ export class TideService {
       throw new Error('NIWA API key not configured');
     }
 
-    const { lat, lng } = API_CONFIG.locations.ianShawPark;
+    const { lat, lng } = API_CONFIG.estuaryCentre;
     
     // Get tide data without interval to get high/low times only
     const params = new URLSearchParams({

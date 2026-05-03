@@ -3,104 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Waka Ama Paddling Conditions</title>
+  <title>The Ramp — Tāmaki Estuary Conditions</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.0/dist/leaflet.css" />
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>🛶 Waka Ama Conditions</h1>
-      <p>Ian Shaw Park • Weekdays 4-7pm</p>
+      <h1>🛶 The Ramp</h1>
+      <p>Tāmaki Estuary • Round-trip conditions</p>
     </header>
-    
-    <main>
-      <div class="conditions-card">
-        <div class="difficulty-indicator">
-          <div class="difficulty-level" id="difficultyLevel">EASY</div>
-          <div class="difficulty-score" id="difficultyScore">2/10</div>
+
+    <!-- AI Synthesis -->
+    <div id="aiCard" class="ai-card" style="display:none">
+      <div class="ai-badge">🤖 AI Forecast</div>
+      <div id="aiBestWindow" class="best-window">
+        <div class="window-label">Best time to paddle</div>
+        <div class="window-time" id="aiWindowTime">—</div>
+      </div>
+      <p class="narrative" id="aiNarrative">—</p>
+      <div class="safety-alert" id="aiSafety" style="display:none">—</div>
+    </div>
+
+    <!-- Current Conditions -->
+    <div class="card">
+      <h3>⏰ Right Now</h3>
+      <div class="trip-grid">
+        <div class="trip-leg">
+          <div class="leg-title">Outbound</div>
+          <div class="leg-score" id="outScore">—</div>
+          <div class="leg-label" id="outLabel">—</div>
+          <div class="leg-factors" id="outFactors">—</div>
         </div>
-        
-        <div class="conditions-grid">
-          <div class="condition-item">
-            <span class="label">🌊 Tide</span>
-            <span class="value" id="tideStatus">High (1.8m) Incoming</span>
-          </div>
-          <div class="condition-item">
-            <span class="label">💨 Wind</span>
-            <span class="value" id="windStatus">5 km/h NE</span>
-          </div>
-          <div class="condition-item">
-            <span class="label">🌪️ Gusts</span>
-            <span class="value" id="gustStatus">8 km/h</span>
-          </div>
-          <div class="condition-item">
-            <span class="label">🌡️ Temperature</span>
-            <span class="value" id="tempStatus">22°C</span>
-          </div>
-          <div class="condition-item">
-            <span class="label">⏰ Time</span>
-            <span class="value" id="timeStatus">5:30 PM</span>
-          </div>
-        </div>
-        
-        <div class="recommendation">
-          <h3>Now - Recommendation</h3>
-          <p id="recommendation">Perfect conditions! Light offshore winds and high tide make for ideal paddling. Water temperature is comfortable.</p>
+        <div class="trip-leg">
+          <div class="leg-title">Return</div>
+          <div class="leg-score" id="retScore">—</div>
+          <div class="leg-label" id="retLabel">—</div>
+          <div class="leg-factors" id="retFactors">—</div>
         </div>
       </div>
-      
-      <div class="paddle-directions-card">
-        <h2>🧭 Paddle Direction Analysis</h2>
-        <div id="recommendedDirection" class="recommended-direction both">✅ Both directions are good</div>
-        
-        <div class="directions-grid">
-          <div class="direction-assessment" id="outgoingAssessment">
-            <div class="direction-header">
-              <span class="direction-label">🚣‍♂️ Outgoing (to Bucklands Beach)</span>
-              <span class="direction-score easy">8/10</span>
-            </div>
-            <p class="direction-recommendation">Perfect conditions for paddling towards Bucklands Beach! NE winds provide a tailwind.</p>
+    </div>
+
+    <!-- Hourly Difficulty Timeline -->
+    <div class="card">
+      <h3>📅 Hourly Round-Trip Scores</h3>
+      <div class="timeline-wrap" id="timelineWrap">
+        <div class="timeline" id="timeline">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Raw Conditions -->
+    <div class="card">
+      <h3>🌤️ Conditions</h3>
+      <div class="cond-grid">
+        <!-- Wind -->
+        <div class="cond-chart">
+          <h4>Wind & Gusts</h4>
+          <div class="wind-rows" id="windRows">Loading...</div>
+        </div>
+        <!-- Tide -->
+        <div class="cond-chart">
+          <h4>Tide Height</h4>
+          <div class="tide-chart" id="tideChart">
+            <svg viewBox="0 0 300 160" preserveAspectRatio="none">
+              <text x="150" y="80" text-anchor="middle" fill="#2c5282" font-size="12">Loading...</text>
+            </svg>
           </div>
-          
-          <div class="direction-assessment" id="incomingAssessment">
-            <div class="direction-header">
-              <span class="direction-label">🏠 Incoming (back to Ian Shaw Park)</span>
-              <span class="direction-score moderate">6/10</span>
-            </div>
-            <p class="direction-recommendation">Moderate conditions for paddling back to Ian Shaw Park. NE winds create a headwind.</p>
-          </div>
+          <div class="tide-labels" id="tideLabels"></div>
+        </div>
+        <!-- Rain -->
+        <div class="cond-chart">
+          <h4>Rain Probability (%)</h4>
+          <div class="mini-chart" id="rainChart">Loading...</div>
+        </div>
+        <!-- Temperature -->
+        <div class="cond-chart">
+          <h4>Temperature (°C)</h4>
+          <div class="mini-chart" id="tempChart">Loading...</div>
         </div>
       </div>
-      
-      <div class="tides-card">
-        <h2>🌊 Today's Tide Times</h2>
-        <div id="tidesContainer" class="tides-container">
-          <div class="tide-time">
-            <span class="tide-type high">High</span>
-            <span class="tide-time-value">6:24 AM</span>
-            <span class="tide-height">1.8m</span>
-          </div>
-          <div class="tide-time">
-            <span class="tide-type low">Low</span>
-            <span class="tide-time-value">12:47 PM</span>
-            <span class="tide-height">0.3m</span>
-          </div>
-          <div class="tide-time">
-            <span class="tide-type high">High</span>
-            <span class="tide-time-value">7:15 PM</span>
-            <span class="tide-height">1.9m</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="forecast-card">
-        <h2>📊 Extended Forecast</h2>
-        <div id="forecastContainer" class="forecast-container"></div>
-      </div>
-    </main>
+    </div>
+
+    <!-- Segment Breakdown -->
+    <div class="card">
+      <h3>📍 Segment Breakdown</h3>
+      <div class="segment-list" id="segmentList">Loading...</div>
+    </div>
+
+    <!-- Map -->
+    <div class="card">
+      <h3>🗺️ Route Map</h3>
+      <div id="map" class="map-container"></div>
+    </div>
   </div>
-  
+
   <script type="module" src="main.ts"></script>
 </body>
 </html>

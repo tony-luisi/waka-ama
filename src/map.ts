@@ -1,135 +1,86 @@
 import * as L from 'leaflet';
-import { ianShawPark } from './data';
+import { WAYPOINTS } from './config';
 import { WeatherConditions } from './types';
 import { arrowRotationFromWindFromLabel } from './wind-display';
-
-// Bucklands Beach coordinates (approximate destination)
-const bucklandsBeach = {
-  lat: -36.8405,
-  lng: 174.7725,
-  name: 'Bucklands Beach'
-};
 
 export class WindMap {
   private map: L.Map;
   private windMarker: L.Marker | null = null;
-  private paddleRoute: L.Polyline | null = null;
+  
+  private waypointMarkers: L.Marker[] = [];
 
   constructor(containerId: string) {
-    this.map = L.map(containerId, {
-      zoomControl: true
-    });
+    this.map = L.map(containerId, { zoomControl: true });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(this.map);
 
-    this.addLocationMarkers();
-    this.addPaddleRoute();
-    this.fitMapToBounds();
+    this.addWaypoints();
+    this.addRoute();
+    this.fitBounds();
   }
 
-  private addLocationMarkers(): void {
-    // Ian Shaw Park (launch site)
-    const launchIcon = L.divIcon({
-      html: '🛶',
-      className: 'location-marker',
-      iconSize: [30, 30],
-      iconAnchor: [15, 15]
+  private addWaypoints(): void {
+    WAYPOINTS.forEach((wp, i) => {
+      const isStart = i === 0;
+      const isEnd = i === WAYPOINTS.length - 1;
+      const icon = L.divIcon({
+        html: isStart ? '🚀' : isEnd ? '🎯' : '●',
+        className: 'location-marker',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+
+      const marker = L.marker([wp.lat, wp.lng], { icon }).addTo(this.map);
+      marker.bindPopup(`<b>${wp.nickname}</b><br/>Waypoint ${i + 1} of ${WAYPOINTS.length}`);
+      this.waypointMarkers.push(marker);
     });
-
-    L.marker([ianShawPark.coordinates.lat, ianShawPark.coordinates.lng], { icon: launchIcon })
-      .addTo(this.map)
-      .bindPopup(`<b>${ianShawPark.name}</b><br/>🚀 Launch Site<br/>Waka Ama Training`);
-
-    // Bucklands Beach (destination)
-    const destinationIcon = L.divIcon({
-      html: '🏖️',
-      className: 'location-marker',
-      iconSize: [30, 30],
-      iconAnchor: [15, 15]
-    });
-
-    L.marker([bucklandsBeach.lat, bucklandsBeach.lng], { icon: destinationIcon })
-      .addTo(this.map)
-      .bindPopup(`<b>${bucklandsBeach.name}</b><br/>🎯 Destination<br/>Paddle Training Route`);
   }
 
-  private addPaddleRoute(): void {
-    // Draw a line showing the typical paddle route
-    const routeCoords: [number, number][] = [
-      [ianShawPark.coordinates.lat, ianShawPark.coordinates.lng],
-      [bucklandsBeach.lat, bucklandsBeach.lng]
-    ];
-
-    this.paddleRoute = L.polyline(routeCoords, {
+  private addRoute(): void {
+    const coords: [number, number][] = WAYPOINTS.map(wp => [wp.lat, wp.lng]);
+    L.polyline(coords, {
       color: '#3b82f6',
       weight: 3,
       opacity: 0.7,
-      dashArray: '10, 10'
+      dashArray: '8, 8'
     }).addTo(this.map);
-
-    this.paddleRoute.bindPopup(`
-      <b>Waka Ama Training Route</b><br/>
-      🚀 Start: ${ianShawPark.name}<br/>
-      🎯 Destination: ${bucklandsBeach.name}<br/>
-      📏 Distance: ~0.8km
-    `);
   }
 
   private createWindArrow(weather: WeatherConditions): string {
     const angle = arrowRotationFromWindFromLabel(weather.windDirection);
-    const color = this.getWindColor(weather.windSpeed);
-    const size = 16; // Fixed size for consistency
+    const color = weather.windSpeed <= 10 ? '#4ade80' : weather.windSpeed <= 20 ? '#fbbf24' : '#f87171';
+    const size = 14;
 
     return `
       <div style="position: relative; width: 50px; height: 50px;">
-        <div class="wind-arrow" style="
-          width: ${size * 2}px; 
-          height: ${size * 2}px;
+        <div style="
+          width: ${size * 2}px; height: ${size * 2}px;
           transform: rotate(${angle}deg);
           background-color: ${color};
-          position: absolute;
-          top: 50%;
-          left: 50%;
+          position: absolute; top: 50%; left: 50%;
           margin: -${size}px 0 0 -${size}px;
           border-radius: 50% 50% 50% 0;
           border: 2px solid white;
           box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         ">
           <div style="
-            position: absolute;
-            top: 50%;
-            left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(-${angle}deg);
-            font-size: 10px;
-            color: white;
-            font-weight: bold;
+            font-size: 9px; color: white; font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
           ">${weather.windSpeed}</div>
         </div>
         <div style="
-          position: absolute;
-          bottom: -18px;
-          left: 50%;
+          position: absolute; bottom: -16px; left: 50%;
           transform: translateX(-50%);
-          background: rgba(0,0,0,0.8);
-          color: white;
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-size: 10px;
-          font-weight: bold;
-          white-space: nowrap;
+          background: rgba(0,0,0,0.8); color: white;
+          padding: 2px 5px; border-radius: 3px;
+          font-size: 9px; font-weight: bold; white-space: nowrap;
         ">${weather.windDirection}</div>
       </div>
     `;
-  }
-
-  private getWindColor(windSpeed: number): string {
-    if (windSpeed <= 10) return '#4ade80';
-    if (windSpeed <= 20) return '#fbbf24';
-    if (windSpeed <= 30) return '#f87171';
-    return '#dc2626';
   }
 
   updateWind(weather: WeatherConditions): void {
@@ -144,55 +95,25 @@ export class WindMap {
       iconAnchor: [25, 25]
     });
 
-    // Position wind marker slightly offset from launch site
+    const start = WAYPOINTS[0];
     this.windMarker = L.marker(
-      [ianShawPark.coordinates.lat + 0.001, ianShawPark.coordinates.lng + 0.003], 
+      [start.lat + 0.001, start.lng + 0.003],
       { icon: windIcon }
     ).addTo(this.map);
 
-    // Determine wind impact on paddling
-    const windImpact = this.getWindImpact(weather);
-
     this.windMarker.bindPopup(`
-      <div class="wind-popup">
-        <h4>💨 Current Wind</h4>
-        <p><strong>Speed:</strong> ${weather.windSpeed} km/h</p>
-        <p><strong>Direction:</strong> ${weather.windDirection} <span style="opacity:0.85;font-size:0.9em">(from)</span></p>
-        <p><strong>Gusts:</strong> ${weather.gustSpeed} km/h</p>
-        <p><strong>Temperature:</strong> ${weather.temperature}°C</p>
-        <hr style="margin: 8px 0;">
-        <p><strong>Paddling Impact:</strong></p>
-        <p style="font-size: 0.9em; color: #666;">${windImpact}</p>
+      <div style="font-size: 0.9rem">
+        <b>💨 Wind at The Ramp</b><br/>
+        ${weather.windSpeed} km/h ${weather.windDirection}<br/>
+        Gusts: ${weather.gustSpeed} km/h<br/>
+        Temp: ${weather.temperature}°C
       </div>
     `);
   }
 
-  private getWindImpact(weather: WeatherConditions): string {
-    const { windDirection } = weather;
-    
-    if (['SW', 'WSW', 'W'].includes(windDirection)) {
-      return `${windDirection} winds favor outgoing paddle to Bucklands Beach (tailwind)`;
-    } else if (['NE', 'ENE', 'E'].includes(windDirection)) {
-      return `${windDirection} winds favor incoming paddle to Ian Shaw Park (tailwind)`;
-    } else if (['N', 'S', 'SE', 'NW'].includes(windDirection)) {
-      return `${windDirection} crosswinds - manageable conditions`;
-    } else {
-      return `${windDirection} winds create variable conditions`;
-    }
-  }
-
-  private fitMapToBounds(): void {
-    // Create bounds that include both locations
-    const bounds = L.latLngBounds([
-      [ianShawPark.coordinates.lat, ianShawPark.coordinates.lng],
-      [bucklandsBeach.lat, bucklandsBeach.lng]
-    ]);
-    
-    // Fit map to bounds with padding
-    this.map.fitBounds(bounds, {
-      padding: [50, 50], // Add 50px padding on all sides
-      maxZoom: 15 // Don't zoom in too close
-    });
+  private fitBounds(): void {
+    const bounds = L.latLngBounds(WAYPOINTS.map(wp => [wp.lat, wp.lng]));
+    this.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
   }
 
   resize(): void {

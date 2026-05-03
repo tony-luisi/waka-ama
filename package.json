@@ -6,12 +6,14 @@
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite",
+    "dev:api": "node scripts/dev-api-server.js",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
   "keywords": ["waka-ama", "paddling", "weather", "conditions"],
   "author": "",
   "license": "MIT",
+  "type": "module",
   "devDependencies": {
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
