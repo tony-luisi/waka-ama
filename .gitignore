@@ -61,3 +61,4 @@ jspm_packages/
 
 # Vite cache
 .vite/
+.vercel
