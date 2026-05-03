@@ -17,10 +17,7 @@
     <!-- AI Synthesis -->
     <div id="aiCard" class="ai-card" style="display:none">
       <div class="ai-badge">🤖 AI Forecast</div>
-      <div id="aiBestWindow" class="best-window">
-        <div class="window-label">Best time to paddle</div>
-        <div class="window-time" id="aiWindowTime">—</div>
-      </div>
+      <div id="aiTopWindows" class="top-windows"></div>
       <p class="narrative" id="aiNarrative">—</p>
       <div class="safety-alert" id="aiSafety" style="display:none">—</div>
     </div>
@@ -42,17 +39,10 @@
           <div class="leg-factors" id="retFactors">—</div>
         </div>
       </div>
+      <div class="hour-commentary" id="hourCommentary"></div>
     </div>
 
-    <!-- Hourly Difficulty Timeline -->
-    <div class="card">
-      <h3>📅 Hourly Round-Trip Scores</h3>
-      <div class="timeline-wrap" id="timelineWrap">
-        <div class="timeline" id="timeline">Loading...</div>
-      </div>
-    </div>
-
-    <!-- Raw Conditions -->
+    <!-- Raw Conditions (the inputs) -->
     <div class="card">
       <h3>🌤️ Conditions</h3>
       <div class="cond-grid">
@@ -81,6 +71,14 @@
           <h4>Temperature (°C)</h4>
           <div class="mini-chart" id="tempChart">Loading...</div>
         </div>
+      </div>
+    </div>
+
+    <!-- Hourly Difficulty Timeline -->
+    <div class="card">
+      <h3>📅 Hourly Round-Trip Scores</h3>
+      <div class="timeline-wrap" id="timelineWrap">
+        <div class="timeline" id="timeline">Loading...</div>
       </div>
     </div>
 

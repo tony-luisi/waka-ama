@@ -15,7 +15,7 @@ async function loadData() {
 
     fetchAISynthesis(forecast).then(synthesis => {
       if (synthesis) {
-        renderAISynthesis(synthesis);
+        renderAISynthesis(synthesis, forecast);
       }
     }).catch(err => {
       console.warn('AI synthesis failed:', err);
@@ -106,20 +106,55 @@ function renderAll(forecast: TripDayForecast) {
     || forecast.hourlyAssessments[0];
 
   renderCurrentConditions(currentAssessment);
-  renderTimeline(forecast);
   renderConditionsPanel(forecast);
+  renderTimeline(forecast);
   renderSegments(currentAssessment);
   renderMap(currentAssessment);
 }
 
-function renderAISynthesis(synthesis: AISynthesis) {
+/** Compute top 3 two-hour windows by round-trip net assistance. */
+function getTopWindows(forecast: TripDayForecast, count: number = 3): Array<{ start: Date; end: Date; netAssistanceKmh: number }> {
+  const windows: Array<{ start: Date; end: Date; netAssistanceKmh: number }> = [];
+  for (let i = 0; i <= forecast.hourlyAssessments.length - 2; i++) {
+    const net = (forecast.hourlyAssessments[i].roundTripNetKmh + forecast.hourlyAssessments[i + 1].roundTripNetKmh) / 2;
+    windows.push({
+      start: forecast.hourlyAssessments[i].time,
+      end: forecast.hourlyAssessments[i + 1].time,
+      netAssistanceKmh: net
+    });
+  }
+  return windows.sort((a, b) => b.netAssistanceKmh - a.netAssistanceKmh).slice(0, count);
+}
+
+function formatTimeWindow(start: Date, end: Date): string {
+  const fmt = (d: Date) => d.toLocaleTimeString('en-NZ', { hour: 'numeric', hour12: true }).replace(' ', '');
+  return `${fmt(start)} — ${fmt(end)}`;
+}
+
+function renderAISynthesis(synthesis: AISynthesis, forecast: TripDayForecast) {
   const card = document.getElementById('aiCard');
-  const windowTime = document.getElementById('aiWindowTime');
+  const topWindowsEl = document.getElementById('aiTopWindows');
   const narrative = document.getElementById('aiNarrative');
   const safety = document.getElementById('aiSafety');
 
   if (card) card.style.display = 'block';
-  if (windowTime) windowTime.textContent = synthesis.bestWindow || '—';
+
+  // Show our computed top 3 windows (rule-based, always accurate)
+  const topWindows = getTopWindows(forecast);
+  if (topWindowsEl) {
+    topWindowsEl.innerHTML = topWindows.map((w, i) => {
+      const label = i === 0 ? 'Best' : i === 1 ? '2nd' : '3rd';
+      const net = formatNet(w.netAssistanceKmh);
+      return `
+        <div class="top-window ${i === 0 ? 'best' : ''}">
+          <span class="tw-label">${label}</span>
+          <span class="tw-time">${formatTimeWindow(w.start, w.end)}</span>
+          <span class="tw-net">${net}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
   if (narrative) narrative.textContent = synthesis.narrative || '—';
 
   if (safety) {
@@ -139,6 +174,7 @@ function renderCurrentConditions(assessment: HourlyTripAssessment) {
   const retScore = document.getElementById('retScore');
   const retLabel = document.getElementById('retLabel');
   const retFactors = document.getElementById('retFactors');
+  const commentary = document.getElementById('hourCommentary');
 
   const outNet = formatNet(assessment.outboundNetKmh);
   const retNet = formatNet(assessment.returnNetKmh);
@@ -160,6 +196,34 @@ function renderCurrentConditions(assessment: HourlyTripAssessment) {
   if (retFactors) {
     retFactors.innerHTML = breakdownHtml(assessment.returnSegments, assessment, false);
   }
+
+  if (commentary) {
+    commentary.textContent = getHourCommentary(assessment);
+  }
+}
+
+/** Rule-based commentary for a selected hour. */
+function getHourCommentary(ha: HourlyTripAssessment): string {
+  const out = ha.outboundNetKmh;
+  const ret = ha.returnNetKmh;
+  const wind = ha.weather.windSpeed;
+  const gust = ha.weather.gustSpeed;
+  const tide = ha.tide.currentSpeedKmh;
+  const rain = ha.weather.rainProbability;
+  const chop = ha.outboundSegments.reduce((s, seg) => s + seg.chopImpactKmh, 0) / ha.outboundSegments.length;
+
+  if (rain > 70) return 'Heavy rain forecast — consider postponing.';
+  if (gust > 30) return 'Strong gusts — experienced crews only.';
+  if (wind > 25) return 'Very windy — tough going both ways.';
+  if (out >= 2 && ret >= 2) return 'Excellent both ways — strong tailwind and following tide.';
+  if (out >= 2 && ret >= 0) return 'Great outbound, easy return. Good window for a round trip.';
+  if (out >= 1 && ret < -1) return 'Good outbound but tough return. Consider a one-way or wait for tide to turn.';
+  if (out < -1 && ret >= 1) return 'Hard outbound, easy return. Only go if the crew is ready to work on the way out.';
+  if (out < -1 && ret < -1) return 'Tough both ways — maybe wait for a better window.';
+  if (chop < -0.5) return 'Choppy water at exposed waypoints — stay low and watch Second Bridge.';
+  if (tide > 3) return 'Strong tide running — powerful assist if you go with it.';
+  if (out >= 0.5 && ret >= 0.5) return 'Decent conditions both ways — a solid training paddle.';
+  return 'Moderate conditions — manageable for most crews.';
 }
 
 function formatNet(kmh: number): string {
@@ -198,15 +262,16 @@ function renderTimeline(forecast: TripDayForecast) {
   const timeline = document.getElementById('timeline');
   if (!timeline) return;
 
-  const bestWindow = forecast.bestWindow;
-  const isBestHour = (time: Date) => {
-    if (!bestWindow) return false;
-    return time.getHours() >= bestWindow.start.getHours() && time.getHours() <= bestWindow.end.getHours();
-  };
+  const topWindows = getTopWindows(forecast);
+  const topHourSet = new Set<number>();
+  topWindows.forEach(w => {
+    topHourSet.add(w.start.getHours());
+    topHourSet.add(w.end.getHours());
+  });
 
   timeline.innerHTML = forecast.hourlyAssessments.map(ha => {
     const hourStr = ha.time.toLocaleTimeString('en-NZ', { hour: 'numeric', hour12: true }).replace(' ', '');
-    const bestClass = isBestHour(ha.time) ? 'best' : '';
+    const bestClass = topHourSet.has(ha.time.getHours()) ? 'best' : '';
     const outTip = tooltipForAssessment(ha, true);
     const inTip = tooltipForAssessment(ha, false);
     return `
@@ -241,7 +306,7 @@ function tooltipForAssessment(ha: HourlyTripAssessment, outbound: boolean): stri
   const tide = segs.reduce((s, seg) => s + seg.tideImpactKmh, 0) / segs.length;
   const chop = segs.reduce((s, seg) => s + seg.chopImpactKmh, 0) / segs.length;
   const net = outbound ? ha.outboundNetKmh : ha.returnNetKmh;
-  return `Net: ${formatNet(net)}\\nWind: ${formatNet(wind)}\\nTide: ${formatNet(tide)}\\nChop: ${formatNet(chop)}`;
+  return `Net: ${formatNet(net)}\nWind: ${formatNet(wind)}\nTide: ${formatNet(tide)}\nChop: ${formatNet(chop)}`;
 }
 
 function renderConditionsPanel(forecast: TripDayForecast) {

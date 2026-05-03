@@ -70,20 +70,37 @@ header p { color: #cbd5e1; font-size: 1rem; }
   margin-bottom: 12px;
 }
 .ai-card h2 { font-size: 1.2rem; margin-bottom: 12px; color: white; }
-.ai-card .best-window {
-  background: rgba(34, 197, 94, 0.15);
-  border: 2px solid var(--easy);
-  border-radius: 12px;
-  padding: 16px;
+.ai-card .top-windows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin-bottom: 14px;
-  text-align: center;
 }
-.ai-card .best-window .window-label {
-  font-size: 0.8rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 1px;
-  margin-bottom: 6px;
+.ai-card .top-window {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
 }
-.ai-card .best-window .window-time {
-  font-size: 1.8rem; font-weight: 800; color: var(--easy);
+.ai-card .top-window.best {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: var(--easy);
+}
+.ai-card .top-window .tw-label {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  color: #a5b4fc; min-width: 36px;
+}
+.ai-card .top-window.best .tw-label { color: var(--easy); }
+.ai-card .top-window .tw-time {
+  flex: 1; font-weight: 600; color: white;
+}
+.ai-card .top-window .tw-net {
+  font-weight: 700; color: var(--easy); white-space: nowrap;
 }
 .ai-card .narrative { font-size: 0.95rem; line-height: 1.6; margin-bottom: 14px; color: #e2e8f0; }
 .ai-card .safety-alert {
@@ -138,6 +155,18 @@ header p { color: #cbd5e1; font-size: 1rem; }
 .trip-leg .leg-factors .factor:last-child { border-bottom: none; }
 .trip-leg .leg-factors .factor-raw { flex: 1; text-align: left; }
 .trip-leg .leg-factors .factor-impact { font-weight: 700; color: var(--ocean-deep); white-space: nowrap; }
+
+.hour-commentary {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(49, 130, 206, 0.08);
+  border-radius: 8px;
+  border-left: 3px solid var(--ocean-light);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ocean-deep);
+  line-height: 1.4;
+}
 
 /* Timeline */
 .timeline-wrap {
