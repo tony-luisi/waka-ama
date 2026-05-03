@@ -58,6 +58,12 @@ Conditions are now expressed as NET ASSISTANCE in km/h:
 - Zero = neutral conditions
 - A typical cruising speed is ~9 km/h, so -1.5 km/h means you'll feel like you're paddling 10.5 km/h effort.
 
+CRITICAL CONSTRAINTS:
+- Paddling is only possible between 9:00 AM and 9:00 PM. NEVER recommend times outside this window.
+- The forecast data only covers 9am–9pm. Do not hallucinate overnight or early morning windows.
+- If the best conditions are at 9am, say "9:00 AM — 11:00 AM" (a 2-hour window).
+- If conditions are good all afternoon, say "2:00 PM — 5:00 PM".
+
 Respond ONLY with valid JSON in this exact format:
 {
   "narrative": "2-3 sentence overview of today's conditions",
@@ -111,7 +117,7 @@ function buildPrompt(forecast) {
   const bestWindow = forecast.bestWindow;
   const worstWindow = forecast.worstWindow;
 
-  let prompt = `Today's Tāmaki Estuary paddling conditions (net assistance in km/h — positive means the elements help you, negative means they work against you):\n\n`;
+  let prompt = `Today's Tāmaki Estuary paddling conditions (net assistance in km/h — positive means the elements help you, negative means they work against you). Paddling window: 9:00 AM — 9:00 PM ONLY.\n\n`;
 
   if (bestWindow) {
     prompt += `Best window: ${formatTime(bestWindow.start)} — ${formatTime(bestWindow.end)} (net ${formatNet(bestWindow.netAssistanceKmh)})\n`;
