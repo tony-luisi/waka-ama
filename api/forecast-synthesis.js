@@ -122,12 +122,14 @@ function buildPrompt(forecast) {
 
   prompt += `\nHourly breakdown:\n`;
   for (const ha of assessments) {
-    const timeStr = ha.time.toLocaleTimeString('en-NZ', { hour: 'numeric', hour12: true });
+    const time = typeof ha.time === 'string' ? new Date(ha.time) : ha.time;
+    const timeStr = time.toLocaleTimeString('en-NZ', { hour: 'numeric', hour12: true });
     const tideKmh = ha.tide.currentSpeedKmh || 0;
     prompt += `${timeStr}: Outbound ${formatNet(ha.outboundNetKmh)} (${ha.outboundLevel}), Return ${formatNet(ha.returnNetKmh)} (${ha.returnLevel}), Wind ${ha.weather.windSpeed}km/h ${ha.weather.windDirection}, Gusts ${ha.weather.gustSpeed}km/h, Tide ${tideKmh}km/h ${ha.tide.direction}, Rain ${ha.weather.rainProbability}%, Temp ${ha.weather.temperature}°C\n`;
   }
 
-  prompt += `\nOutbound segment net assistance at ${formatTime(assessments[4]?.time || assessments[0]?.time)}:\n`;
+  const midTime = assessments[4]?.time || assessments[0]?.time;
+  prompt += `\nOutbound segment net assistance at ${formatTime(midTime)}:\n`;
   const midAssessment = assessments[Math.floor(assessments.length / 2)];
   if (midAssessment) {
     for (const seg of midAssessment.outboundSegments) {
@@ -140,7 +142,8 @@ function buildPrompt(forecast) {
 
 function formatTime(d) {
   if (!d) return '';
-  return new Date(d).toLocaleTimeString('en-NZ', { hour: 'numeric', hour12: true });
+  const date = typeof d === 'string' ? new Date(d) : d;
+  return date.toLocaleTimeString('en-NZ', { hour: 'numeric', hour12: true });
 }
 
 function formatNet(kmh) {
