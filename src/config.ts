@@ -4,8 +4,6 @@ import type { LocationProfile, RouteSegment } from './types';
 const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
 
 export const API_CONFIG = {
-  apiBaseUrl: isProduction ? '' : 'http://localhost:5173',
-
   niwa: {
     baseUrl: 'https://tides.niwa.co.nz',
     apiUrl: isProduction ? '/api/niwa-tides' : 'https://forecast-v2.metservice.com/niwa/tide',
@@ -18,7 +16,8 @@ export const API_CONFIG = {
   },
 
   openAI: {
-    apiUrl: isProduction ? '/api/forecast-synthesis' : 'http://localhost:5173/api/forecast-synthesis',
+    // Relative in dev too: Vite proxies /api to this workspace's dev API server
+    apiUrl: '/api/forecast-synthesis',
     apiKey: isProduction ? undefined : import.meta.env.VITE_OPENAI_API_KEY
   },
 
