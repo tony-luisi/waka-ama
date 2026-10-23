@@ -62,3 +62,8 @@ jspm_packages/
 # Vite cache
 .vite/
 .vercel
+
+# Superset per-workspace state
+.superset/.ports.env
+.superset/.run.pids
+.superset/config.local.json
